@@ -16,26 +16,29 @@ var
     opcion: string;
 begin
     assign(archivoBancos, 'bancos.dat');
+    reset(archivoBancos);
     while not eof(archivoBancos) do
     begin
         read(archivoBancos, nuevoBanco);
         writeln('Nombre: ', nuevoBanco.nombreBanco);
         writeln('Codigo: ',  nuevoBanco.codigoBanco);
+        writeln('');
     end;
     
     repeat
         WriteLn('Desea ingresar un nuevo banco? (si / no)');
         ReadLn(opcion);
-    until (opcion = 'si') OR (opcion = 'no');
-    if opcion = 'si' then 
-        begin
-            WriteLn('Ingrese el nombre del banco');
-            ReadLn(nuevoBanco.nombreBanco);
-            WriteLn('Ingrese el codigo del banco');
-            ReadLn(nuevoBanco.codigoBanco);
-            Write(archivoBancos, nuevoBanco);
-            close(archivoBancos);
-        end;
+        if ((opcion = 'si') OR (opcion = 'SI') OR (opcion = 'Si')) then 
+            begin
+                WriteLn('Ingrese el nombre del banco');
+                ReadLn(nuevoBanco.nombreBanco);
+                WriteLn('Ingrese el codigo del banco');
+                ReadLn(nuevoBanco.codigoBanco);
+                Write(archivoBancos, nuevoBanco);
+            end;
+    until (opcion = 'no') OR (opcion = 'NO') OR (opcion = 'No');
+    
+    close(archivoBancos);
 end;
 
 procedure OpcionABM;
@@ -66,7 +69,6 @@ begin
         1: begin
             ClrScr;
             OpcionBancos;
-            ReadKey;
             Menu;
         end;
         2: begin
@@ -90,3 +92,11 @@ begin
   Write('Presione cualquier tecla para salir del programa');
   ReadKey;
 end.
+
+
+
+
+
+
+
+
