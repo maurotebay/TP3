@@ -12,7 +12,7 @@ var
     archivoBancos: file of Banco;
     nuevoBanco: Banco;
 begin
-    assign(archivoBancos, 'bancos.dat');
+    assign(archivoBancos, 'C:\ayed\tp3\bancos.dat');
     rewrite(archivoBancos);
     
     nuevoBanco.nombreBanco := 'Banco Patagonia';

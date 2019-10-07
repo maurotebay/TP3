@@ -3,11 +3,11 @@
 program tp3;
 uses Crt;
 
-{Esta opci?n listar? primero todas las entidades bancarias que ya est?n cargadas en el sistema en bancos.dat, y permitir? ingresar nuevos bancos. Por cada nuevo ingreso se deber? registrar el c?digo del banco y el nombre de la entidad.}
+{Esta opcion listara primero todas las entidades bancarias que ya est?n cargadas en el sistema en bancos.dat, y permitir? ingresar nuevos bancos. Por cada nuevo ingreso se deber? registrar el c?digo del banco y el nombre de la entidad.}
 procedure OpcionBancos;
 type        
     Banco = record
-        codigoBanco: integer; {(c?digo de banco)}
+        codigoBanco: integer; {(codigo de banco)}
         nombreBanco: string [30];
     end;
 var
