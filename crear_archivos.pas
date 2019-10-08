@@ -12,7 +12,7 @@ var
     archivoBancos: file of Banco;
     nuevoBanco: Banco;
 begin
-    assign(archivoBancos, 'C:\ayed\tp3\bancos.dat');
+    assign(archivoBancos, 'C:\ayed\tp3\Bancos.dat');
     rewrite(archivoBancos);
     
     nuevoBanco.nombreBanco := 'Banco Patagonia';
@@ -30,7 +30,45 @@ begin
     close(archivoBancos);
 end;
 
+procedure Comercios;
+type
+    Comercio = record
+        codigoComercio:integer;
+        nombre:string[30];
+        cuit:string[12];
+        estado:boolean;
+        end;
+var
+    archivoComercios:file of Comercio;
+    nuevoComercio: Comercio;
+begin
+    assign(archivoComercios, 'C:\ayed\tp3\Comercios.dat');
+    rewrite(archivoComercios);
+
+    nuevoComercio.codigoComercio:=1;
+    nuevoComercio.nombre:='Carrefour';
+    nuevoComercio.cuit:='123456789124';
+    nuevoComercio.estado:=True;
+    write(archivoComercios, nuevoComercio);
+
+    nuevoComercio.codigoComercio:=2;
+    nuevoComercio.nombre:='Sugarosa';
+    nuevoComercio.cuit:='321654987654';
+    nuevoComercio.estado:=True;
+    write(archivoComercios, nuevoComercio);
+
+    nuevoComercio.codigoComercio:=3;
+    nuevoComercio.nombre:='Micropack';
+    nuevoComercio.cuit:='159753426857';
+    nuevoComercio.estado:=True;
+    write(archivoComercios, nuevoComercio);
+
+    close(archivoComercios);
+end;
+
+
 begin
   Bancos;
+  Comercios;
   ReadKey;
 end.
