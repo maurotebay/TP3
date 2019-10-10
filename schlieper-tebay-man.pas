@@ -55,12 +55,26 @@ type
 var
     archivoComercios:file of Comercio;
     nuevoComercio: Comercio;
-    opcion, posFinal: integer;
+    opcion, posFinal, codigoComercio: integer;
 
 begin
     ClrScr;
     WriteLn('   ABM de comercios adheridos.');
     WriteLn;
+
+    {muestro contenido para testear funcionamientno.}
+    assign(archivoComercios, 'C:\ayed\tp3\comercios.dat');
+    reset(archivoComercios); 
+    while not eof(archivoComercios) do
+    begin
+        read(archivoComercios, nuevoComercio);
+        writeln('Nombre: ', nuevoComercio.nombre);
+        writeln('cuit: ',  nuevoComercio.cuit);
+        writeln('estado: ',  nuevoComercio.estado);
+        writeln('codigo: ',  nuevoComercio.codigoComercio);
+        writeln('');
+    end;
+    Close(archivoComercios);
     WriteLn('1) Alta');
     WriteLn('2) Baja');
     WriteLn('3) Modificacion');
@@ -97,7 +111,34 @@ begin
         end;
         2: begin
             ClrScr;
-            {Baja;}
+            WriteLn('   Baja Comercio.');
+            WriteLn;
+
+            assign(archivoComercios, 'C:\ayed\tp3\comercios.dat');
+            reset(archivoComercios);
+
+            WriteLn('Ingrese el codigo del comercio a dar de baja');
+            ReadLn(codigoComercio);
+
+            if codigoComercio <= FileSize(archivoComercios)then
+            begin
+                Seek(archivoComercios, codigoComercio);{al estar ordenado, el codigo coincide con el puntero.}
+                Read(archivoComercios, nuevoComercio);{leo el comercio a dar de baja}
+
+                if nuevoComercio.estado then
+                begin
+                    nuevoComercio.estado := False;
+                    Seek(archivoComercios, codigoComercio);{vuelvo a la posicion, ya que el read aumenta el puntero}
+                    Write(archivoComercios, nuevoComercio);{sobreescribo el comercio modificado en la misma posicion que estaba.}
+                    WriteLn('El comercio se ha dado de baja satisfactoriamente.');
+                end
+                else WriteLn('El comercio ya estaba dado de baja.');
+
+
+            end
+            else WriteLn('El codigo de comercio no fue encontrado.');
+
+            close(archivoComercios);
             ReadKey;
             OpcionABM;
         end;
@@ -154,4 +195,8 @@ begin
   Write('Presione cualquier tecla para salir del programa');
   ReadKey;
 end.
+
+
+
+
 

@@ -45,19 +45,19 @@ begin
     assign(archivoComercios, 'C:\ayed\tp3\comercios.dat');
     rewrite(archivoComercios);
 
-    nuevoComercio.codigoComercio:=1;
+    nuevoComercio.codigoComercio:=0;
     nuevoComercio.nombre:='Carrefour';
     nuevoComercio.cuit:='123456789124';
     nuevoComercio.estado:=True;
     write(archivoComercios, nuevoComercio);
 
-    nuevoComercio.codigoComercio:=2;
+    nuevoComercio.codigoComercio:=1;
     nuevoComercio.nombre:='Sugarosa';
     nuevoComercio.cuit:='321654987654';
     nuevoComercio.estado:=True;
     write(archivoComercios, nuevoComercio);
 
-    nuevoComercio.codigoComercio:=3;
+    nuevoComercio.codigoComercio:=2;
     nuevoComercio.nombre:='Micropack';
     nuevoComercio.cuit:='159753426857';
     nuevoComercio.estado:=True;
