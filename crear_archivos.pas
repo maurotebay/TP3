@@ -6,24 +6,24 @@ procedure Bancos;
 type        
     Banco = record
         codigoBanco: integer; {(c?digo de banco)}
-        nombreBanco: string [30];
+        nombre: string [30];
     end;
 var
     archivoBancos: file of Banco;
     nuevoBanco: Banco;
 begin
-    assign(archivoBancos, 'C:\ayed\tp3\Bancos.dat');
+    assign(archivoBancos, 'C:\ayed\tp3\bancos.dat');
     rewrite(archivoBancos);
     
-    nuevoBanco.nombreBanco := 'Banco Patagonia';
+    nuevoBanco.nombre := 'Banco Patagonia';
     nuevoBanco.codigoBanco := 12345678;
     Write(archivoBancos, nuevoBanco);
 
-    nuevoBanco.nombreBanco := 'Banco Nacion';
+    nuevoBanco.nombre := 'Banco Nacion';
     nuevoBanco.codigoBanco := 87654321;
     Write(archivoBancos, nuevoBanco);
 
-    nuevoBanco.nombreBanco := 'Banco Galicia';
+    nuevoBanco.nombre := 'Banco Galicia';
     nuevoBanco.codigoBanco := 12348765;
     Write(archivoBancos, nuevoBanco);
 
@@ -42,7 +42,7 @@ var
     archivoComercios:file of Comercio;
     nuevoComercio: Comercio;
 begin
-    assign(archivoComercios, 'C:\ayed\tp3\Comercios.dat');
+    assign(archivoComercios, 'C:\ayed\tp3\comercios.dat');
     rewrite(archivoComercios);
 
     nuevoComercio.codigoComercio:=1;

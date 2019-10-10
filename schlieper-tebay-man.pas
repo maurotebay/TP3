@@ -8,19 +8,22 @@ procedure OpcionBancos;
 type        
     Banco = record
         codigoBanco: integer; {(codigo de banco)}
-        nombreBanco: string [30];
+        nombre: string [30];
     end;
 var
     archivoBancos: file of Banco;
     nuevoBanco: Banco;
     opcion: string;
 begin
-    assign(archivoBancos, 'bancos.dat');
+    assign(archivoBancos, 'C:\ayed\tp3\bancos.dat');
     reset(archivoBancos);
+
+    WriteLn('Listado de entidades bancarias: ');
+    WriteLn('');
     while not eof(archivoBancos) do
     begin
         read(archivoBancos, nuevoBanco);
-        writeln('Nombre: ', nuevoBanco.nombreBanco);
+        writeln('Nombre: ', nuevoBanco.nombre);
         writeln('Codigo: ',  nuevoBanco.codigoBanco);
         writeln('');
     end;
@@ -31,7 +34,7 @@ begin
         if ((opcion = 'si') OR (opcion = 'SI') OR (opcion = 'Si')) then 
             begin
                 WriteLn('Ingrese el nombre del banco');
-                ReadLn(nuevoBanco.nombreBanco);
+                ReadLn(nuevoBanco.nombre);
                 WriteLn('Ingrese el codigo del banco');
                 ReadLn(nuevoBanco.codigoBanco);
                 Write(archivoBancos, nuevoBanco);
@@ -42,8 +45,69 @@ begin
 end;
 
 procedure OpcionABM;
+type
+    Comercio = record
+        codigoComercio:integer;
+        nombre:string[30];
+        cuit:string[12];
+        estado:boolean;
+        end;
+var
+    archivoComercios:file of Comercio;
+    nuevoComercio: Comercio;
+    opcion, posFinal: integer;
+
 begin
-  
+    ClrScr;
+    WriteLn('   ABM de comercios adheridos.');
+    WriteLn;
+    WriteLn('1) Alta');
+    WriteLn('2) Baja');
+    WriteLn('3) Modificacion');
+    WriteLn('4) Salir');
+    repeat
+        Write('Seleccione ingresando una de las opciones: ');
+        ReadLn(opcion);
+    until (opcion >= 1) AND (opcion <= 4);
+    case opcion of
+        1: begin
+            ClrScr;
+            WriteLn('   Alta Comercio.');
+            WriteLn;
+
+            assign(archivoComercios, 'C:\ayed\tp3\comercios.dat');
+            reset(archivoComercios);    
+
+            posFinal := FileSize(archivoComercios);{el primer elemento esta en la pos 0, por lo que en la pos FileSize no hay ningun elemento}
+            Seek(archivoComercios, posFinal); {muevo el puntero a la posicion final}
+
+            WriteLn('Ingrese el nombre del comercio');
+            ReadLn(nuevoComercio.nombre);
+            WriteLn('Ingrese el cuit del comercio');
+            ReadLn(nuevoComercio.cuit);
+            nuevoComercio.codigoComercio := posFinal;
+            nuevoComercio.estado := True;
+            Write(archivoComercios, nuevoComercio);
+
+            Close(archivoComercios);
+            WriteLn('El Comercio se ha agregado satisfactoriamente.');
+
+            readkey;
+            OpcionABM;
+        end;
+        2: begin
+            ClrScr;
+            {Baja;}
+            ReadKey;
+            OpcionABM;
+        end;
+        3: begin
+            ClrScr;
+            {Modificacion;}
+            ReadKey;
+            OpcionABM;
+        end;
+    end
 end;
 
 procedure OpcionUsuarios;
@@ -57,6 +121,7 @@ var
 begin
     ClrScr;
     WriteLn('   MENU');
+    WriteLn;
     WriteLn('1) Bancos');
     WriteLn('2) ABM de Comercios Adheridos');
     WriteLn('3) Usuarios');
@@ -74,17 +139,14 @@ begin
         2: begin
             ClrScr;
             OpcionABM;
-            ReadKey;
             Menu;
         end;
         3: begin
             ClrScr;
             OpcionUsuarios;
-            ReadKey;
             Menu;
         end;
-        4: WriteLn('Fin del menu.');
-    end
+    end;
 end;
 
 begin
@@ -92,11 +154,4 @@ begin
   Write('Presione cualquier tecla para salir del programa');
   ReadKey;
 end.
-
-
-
-
-
-
-
 
