@@ -33,7 +33,7 @@ end;
 procedure Comercios;
 type
     Comercio = record
-        codComercio:integer;
+        codigoComercio:integer;
         nombre:string[30];
         cuit:string[12];
         estado:boolean;
@@ -66,7 +66,7 @@ begin
     close(archivoComercios);
 end;
 
-procedure cuentasVirtuales;
+procedure CuentasVirtuales;
 type
     tarjeta = record
         codBanco:integer;
@@ -100,7 +100,7 @@ begin
     close(archivoCuentas);
 end;
 
-procedure usuarios;
+procedure Usuarios;
 type
     usuario=record
         dni:string[8];
@@ -132,7 +132,7 @@ begin
      close(archivoUsuarios);
 end;
 
-procedure movimientos;
+procedure Movimientos;
 type
     movimiento=record
         dni:string[8];
@@ -141,7 +141,7 @@ type
         importe:real;
         tipoMovimiento:char; //C:compras, E:envio
         dia, mes, anio: word;
-        codComercio:integer;
+        codigoComercio:integer;
         dniOtroUsuario:string[8];
     end;
 var
@@ -159,7 +159,7 @@ begin
     newMovimiento.dia:=17;
     newMovimiento.mes:=7;
     newMovimiento.anio:=2017;
-    newMovimiento.codComercio:=2525;
+    newMovimiento.codigoComercio:=2525;
     newMovimiento.dniOtroUsuario:='32165487';
 
     write(archivoMovimientos, newMovimiento);
@@ -170,8 +170,8 @@ end;
 begin
   Bancos;
   Comercios;
-  cuentasVirtuales;
-  usuarios;
-  movimientos;
+  CuentasVirtuales;
+  Usuarios;
+  Movimientos;
   ReadKey;
 end.
