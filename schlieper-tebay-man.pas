@@ -19,13 +19,13 @@ begin
     reset(archivoBancos);
 
     WriteLn('Listado de entidades bancarias: ');
-    WriteLn('');
+    WriteLn;
     while not eof(archivoBancos) do
     begin
         read(archivoBancos, nuevoBanco);
         writeln('Nombre: ', nuevoBanco.nombre);
         writeln('Codigo: ',  nuevoBanco.codigoBanco);
-        writeln('');
+        writeln;
     end;
     
     repeat
@@ -72,7 +72,7 @@ begin
         writeln('cuit: ',  nuevoComercio.cuit);
         writeln('estado: ',  nuevoComercio.estado);
         writeln('codigo: ',  nuevoComercio.codigoComercio);
-        writeln('');
+        writeln;
     end;
     Close(archivoComercios);
     WriteLn('1) Alta');
@@ -144,11 +144,76 @@ begin
         end;
         3: begin
             ClrScr;
-            {Modificacion;}
-            ReadKey;
+            WriteLn('   Modificar Comercio.');
+            WriteLn;
+
+            assign(archivoComercios, 'C:\ayed\tp3\comercios.dat');
+            reset(archivoComercios);
+
+            WriteLn('Ingrese el codigo del comercio a modificar');
+            ReadLn(codigoComercio);
+
+            if codigoComercio <= FileSize(archivoComercios)then
+            begin
+                Seek(archivoComercios, codigoComercio);{al estar ordenado, el codigo coincide con el puntero.}
+                Read(archivoComercios, nuevoComercio);{leo el comercio a dar de baja}
+
+                repeat
+                    writeln('Datos del Comercio:');
+                    writeln('Nombre: ', nuevoComercio.nombre);
+                    writeln('cuit: ',  nuevoComercio.cuit);
+                    writeln('estado: ',  nuevoComercio.estado);
+                    writeln('codigo: ',  nuevoComercio.codigoComercio);
+                    writeln;
+                    WriteLn('1) Modificar Nombre.');
+                    WriteLn('2) Modificar Cuit.');
+                    WriteLn('3) Modificar Estado.');
+                    WriteLn('4) Salir.');
+                    WriteLn;
+                    repeat
+                        Write('Seleccione ingresando una de las opciones: ');
+                        ReadLn(opcion);
+                    until (opcion >= 1) AND (opcion <= 4);
+
+                    case opcion of
+                        1: begin
+                            WriteLn('Ingrese el nombre del comercio');
+                            ReadLn(nuevoComercio.nombre);
+                            ClrScr;
+                            WriteLn('El nombre se ha modificado satisfactoriamente.');
+                            WriteLn;
+                        end;
+                        2: begin
+                            WriteLn('Ingrese el cuit del comercio');
+                            ReadLn(nuevoComercio.cuit);
+                            ClrScr;
+                            WriteLn('El cuit se ha modificado satisfactoriamente.');
+                            WriteLn;
+                        end;
+                        3: begin
+                            nuevoComercio.estado := not(nuevoComercio.estado);
+                            ClrScr;
+                            WriteLn('El estado cambio de ', not(nuevoComercio.estado), ' a ', nuevoComercio.estado);
+                            WriteLn;
+                        end;
+                    end;
+
+                until opcion = 4;
+
+                Seek(archivoComercios, codigoComercio);{vuelvo a la posicion, ya que el read aumenta el puntero}
+                Write(archivoComercios, nuevoComercio);{sobreescribo el comercio modificado en la misma posicion que estaba.}
+
+            end
+            else 
+                begin
+                    WriteLn('El codigo de comercio no fue encontrado.');
+                    ReadKey;
+                end;
+
+            close(archivoComercios);
             OpcionABM;
         end;
-    end
+    end;
 end;
 
 procedure OpcionUsuarios;
