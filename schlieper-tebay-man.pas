@@ -3,6 +3,9 @@
 program tp3;
 uses Crt;
 
+const
+    RUTA_ARCHIVOS = 'C:\ayed\tp3\';
+
 {Esta opcion listara primero todas las entidades bancarias que ya est?n cargadas en el sistema en bancos.dat, y permitir? ingresar nuevos bancos. Por cada nuevo ingreso se deber? registrar el c?digo del banco y el nombre de la entidad.}
 procedure OpcionBancos;
 type        
@@ -15,7 +18,7 @@ var
     nuevoBanco: Banco;
     opcion: string;
 begin
-    assign(archivoBancos, 'C:\ayed\tp3\bancos.dat');
+    assign(archivoBancos, RUTA_ARCHIVOS + 'bancos.dat');
     reset(archivoBancos);
 
     WriteLn('Listado de entidades bancarias: ');
@@ -63,7 +66,7 @@ begin
     WriteLn;
 
     {muestro contenido para testear funcionamientno.}
-    assign(archivoComercios, 'C:\ayed\tp3\comercios.dat');
+    assign(archivoComercios, RUTA_ARCHIVOS + 'comercios.dat');
     reset(archivoComercios); 
     while not eof(archivoComercios) do
     begin
@@ -89,7 +92,7 @@ begin
             WriteLn('   Alta Comercio.');
             WriteLn;
 
-            assign(archivoComercios, 'C:\ayed\tp3\comercios.dat');
+            assign(archivoComercios, RUTA_ARCHIVOS + 'comercios.dat');
             reset(archivoComercios);    
 
             posFinal := FileSize(archivoComercios);{el primer elemento esta en la pos 0, por lo que en la pos FileSize no hay ningun elemento}
@@ -114,13 +117,13 @@ begin
             WriteLn('   Baja Comercio.');
             WriteLn;
 
-            assign(archivoComercios, 'C:\ayed\tp3\comercios.dat');
+            assign(archivoComercios, RUTA_ARCHIVOS + 'comercios.dat');
             reset(archivoComercios);
 
             WriteLn('Ingrese el codigo del comercio a dar de baja');
             ReadLn(codigoComercio);
 
-            if codigoComercio <= FileSize(archivoComercios)then
+            if codigoComercio < FileSize(archivoComercios)then
             begin
                 Seek(archivoComercios, codigoComercio);{al estar ordenado, el codigo coincide con el puntero.}
                 Read(archivoComercios, nuevoComercio);{leo el comercio a dar de baja}
@@ -134,7 +137,6 @@ begin
                 end
                 else WriteLn('El comercio ya estaba dado de baja.');
 
-
             end
             else WriteLn('El codigo de comercio no fue encontrado.');
 
@@ -147,23 +149,23 @@ begin
             WriteLn('   Modificar Comercio.');
             WriteLn;
 
-            assign(archivoComercios, 'C:\ayed\tp3\comercios.dat');
+            assign(archivoComercios, RUTA_ARCHIVOS + 'comercios.dat');
             reset(archivoComercios);
 
             WriteLn('Ingrese el codigo del comercio a modificar');
             ReadLn(codigoComercio);
 
-            if codigoComercio <= FileSize(archivoComercios)then
+            if codigoComercio < FileSize(archivoComercios)then
             begin
                 Seek(archivoComercios, codigoComercio);{al estar ordenado, el codigo coincide con el puntero.}
                 Read(archivoComercios, nuevoComercio);{leo el comercio a dar de baja}
 
                 repeat
-                    writeln('Datos del Comercio:');
+                    writeln('Datos del Comercio');
                     writeln('Nombre: ', nuevoComercio.nombre);
-                    writeln('cuit: ',  nuevoComercio.cuit);
-                    writeln('estado: ',  nuevoComercio.estado);
-                    writeln('codigo: ',  nuevoComercio.codigoComercio);
+                    writeln('CUIT: ',  nuevoComercio.cuit);
+                    writeln('Estado: ',  nuevoComercio.estado);
+                    writeln('Codigo: ',  nuevoComercio.codigoComercio);
                     writeln;
                     WriteLn('1) Modificar Nombre.');
                     WriteLn('2) Modificar Cuit.');
