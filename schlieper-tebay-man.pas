@@ -264,12 +264,13 @@ var
   claveInt: integer;
 begin
   intentos := 3;
-  WriteLn('Ingrese la contrasena (solo valida entre -32768 a 32767):');
+  Write('Contrasena (numerica, hasta 9 digitos): ');
   repeat
     if intentos < 3 then
     begin
-      ClrScr;
-      WriteLn('Contrasena incorrecta. Ingrese nuevamente (', intentos, ' intentos restantes):');
+      GotoXY(1, WhereY - 1);
+      ClrEol();
+      Write('Contrasena incorrecta (', intentos, ' intentos restantes): ');
     end;
     clave := '';
     repeat
@@ -281,22 +282,22 @@ begin
         clave := clave + caracter;
         Write('*');
       end;
-    until ((Length(clave) >= 5) AND (clave[1] <> '-')) OR (Length(clave) >= 6) OR (Ord(caracter) = 10) OR (Ord(caracter) = 13);
+    until ((clave[1] <> '-') AND (Length(clave) >= 9)) OR (Length(clave) >= 10) OR (Ord(caracter) = 10) OR (Ord(caracter) = 13);
     (* #10 es LF y #13 es CR en ASCII (tecla Enter en Windows equivale a CR LF) *)
     WriteLn();
     intentos := intentos - 1;
     claveInt := StrToIntDef(clave, 0);    (* convierte la clave ingresada a integer, y si no respeta formato de numero vale 0 *)
   until (claveInt = claveReal) OR (intentos < 1);
-  WriteLn(); WriteLn();
+  WriteLn();
   if claveInt = claveReal then
   begin
     IngresarContrasena := True;
-    WriteLn('La clave es correcta.');
+    WriteLn('La contrasena es correcta.');
   end
   else
   begin
     IngresarContrasena := False;
-    WriteLn('La clave es incorrecta. Ya no quedan mas intentos.');
+    WriteLn('La contrasena es incorrecta. Ya no quedan mas intentos.');
   end;
 end;
 
@@ -306,11 +307,11 @@ var
 begin
     Seek(archivo, FileSize(archivo));  //posiciono el puntero al final del archivo
     newUsuario.dni := dni;
-    WriteLn('Contrasena (numero entre -32768 a 32767): ');
+    Write('Contrasena (numerica y hasta 9 digitos): ');
     ReadLn(newUsuario.contrasena);
-    WriteLn('Apellido y nombre: ');
+    Write('Apellido y nombre: ');
     ReadLn(newUsuario.ape_nom);
-    WriteLn('Mail: ');
+    Write('Mail: ');
     ReadLn(newUsuario.mail);
     Write(archivo, newUsuario); //agrego el nuevo usuario al archivo
 end;
@@ -319,6 +320,7 @@ function buscarCuentaPorDni(var archivo: file of CuentaVirtual; dni: string): in
 var
     unaCuenta: CuentaVirtual;
 begin
+    Reset(archivo);
     read(archivo, unaCuenta);
     while (unaCuenta.dni <> dni) AND (not(eof(archivo))) do  //mientras el dni que busco sea distinto del que esta en el archivo
     begin                                                    // y no sea el final del mismo, sigo buscando
@@ -338,7 +340,8 @@ function buscarUsuarioPorDni(var archivoUsuarios: file of Usuario; dni: string):
 var
     unUser: usuario;
 begin
-    read(archivoUsuarios, unUser);
+    Reset(archivoUsuarios);
+    Read(archivoUsuarios, unUser);
     while (unUser.dni <> dni) AND (not(eof(archivoUsuarios))) do  //mientras el dni que busco sea distinto del que esta en el archivo
     begin                                                         // y no sea el final del mismo, sigo buscando
         read(archivoUsuarios, unUser);              //busco el usuario por el campo de dni
@@ -358,7 +361,7 @@ var
     dni: string[8];
     unUsuario: usuario;
 begin
-    WriteLn('    INICIO DE SESION');
+    WriteLn('    INICIAR SESION / REGISTRARSE');
     WriteLn();
     WriteLn();
     WriteLn('Ingrese sus datos para iniciar sesion:');
@@ -386,7 +389,7 @@ procedure OpcionUsuarios;
 var
     opcion: integer;
     crearCuenta: string;
-    i: integer;
+    i, cantidadTarjetas: integer;
     archivoUsuarios: file of Usuario;
     archivoCuentas: file of CuentaVirtual;
     sesionUsuario: Usuario;
@@ -400,18 +403,20 @@ begin
     Reset(archivoCuentas);
     opcion := 0;
     if (usuarioIniciado = -1) then
+    begin
         ClrScr;
-        WriteLn('   Sistema de Usuario');
+        WriteLn('          Sistema de Usuario');
+        WriteLn();
+        WriteLn();
         IniciarSesion(archivoUsuarios);
-        WriteLn();
-        WriteLn();
+    end;
     if (usuarioIniciado <> -1) then
     begin
         repeat
             Seek(archivoUsuarios, usuarioIniciado);
             Read(archivoUsuarios, sesionUsuario);
             ClrScr;
-            WriteLn('   Sistema de Usuario');
+            WriteLn('          Sistema de Usuario');
             if (opcion <> 1) then
             begin
                 Write('Sesion iniciada como ');
@@ -440,7 +445,6 @@ begin
                 1: begin
                     IniciarSesion(archivoUsuarios);
                     opcion := 0;
-                    ReadKey;
                 end;
                 2: begin
                     WriteLn('    CUENTAS');
@@ -450,61 +454,75 @@ begin
                     begin
                         WriteLn('Actualmente este usuario no tiene una cuenta asociada.');
                         repeat
-                            WriteLn('Desea crear una? (si / no)');
+                            WriteLn('Desea crearla? (si / no)');
                             ReadLn(crearCuenta);
                         until (crearCuenta = 'no') OR (crearCuenta = 'NO') OR (crearCuenta = 'No') OR(crearCuenta = 'si') OR (crearCuenta = 'SI') OR (crearCuenta = 'Si');
                         if (crearCuenta = 'si') OR (crearCuenta = 'SI') OR (crearCuenta = 'Si') then
                         begin
+                            nuevaCuenta.dni := sesionUsuario.dni;
                             WriteLn();
-                            WriteLn('Puede agregar hasta 5 tarjetas en su nueva cuenta.');
-                            WriteLn('Llene los datos de las tarjetas (finalice con 0):');
-                            nuevaCuenta.saldo_billetera := 0;
-                            i := 1;
-                            WriteLn('------------------');
-                            WriteLn('TARJETA Nro. ', i);
-                            Write('  Codigo de banco: ');
-                            ReadLn(nuevaTarjeta.cod_ban);
-                            while (i <= 5) AND (nuevaTarjeta.cod_ban <> 0) do
+                            WriteLn('Ingrese todos los datos para su nueva cuenta.');
+                            Write('  Saldo de billetera (efectivo): $ ');
+                            ReadLn(nuevaCuenta.saldo_billetera);
+                            WriteLn();
+                            WriteLn('  Puede agregar hasta 5 tarjetas en su nueva cuenta.');
+                            WriteLn('  Llene los datos de las tarjetas (finalice con "-1" como Codigo de banco):');
+                            for i := 1 to 5 do
                             begin
-                                repeat
-                                    Write('  Debito o Credito? (D / C): ');
-                                    ReadLn(nuevaTarjeta.tipo_tar);
-                                until (nuevaTarjeta.tipo_tar = 'D') OR (nuevaTarjeta.tipo_tar = 'C');
-                                Write('  Saldo de tarjeta: ');
-                                ReadLn(nuevaTarjeta.saldo_x_tarjeta);
-                                nuevaCuenta.cuenta_virtual[i] := nuevaTarjeta;
-                                nuevaCuenta.saldo_billetera := nuevaCuenta.saldo_billetera + nuevaTarjeta.saldo_x_tarjeta;
-                                i := i + 1;
-                                if (i <= 5) then
+                                if (nuevaTarjeta.cod_ban = -1) then
                                 begin
-                                    WriteLn('------------------');
-                                    WriteLn('TARJETA Nro. ', i);
+                                    nuevaTarjeta.tipo_tar := '-';
+                                    nuevaTarjeta.saldo_x_tarjeta := 0;
+                                end
+                                else
+                                begin
+                                    WriteLn('   -----------------------');
+                                    WriteLn('   TARJETA Nro. ', i);
+                                    Write('     Codigo de banco: ');
                                     ReadLn(nuevaTarjeta.cod_ban);
                                 end;
+                                if (nuevaTarjeta.cod_ban <> -1) then
+                                begin
+                                    WriteLn();
+                                    repeat
+                                        GotoXY(1, WhereY - 1);
+                                        ClrEol();
+                                        Write('     Debito o Credito? (D / C): ');
+                                        ReadLn(nuevaTarjeta.tipo_tar);
+                                    until (nuevaTarjeta.tipo_tar = 'D') OR (nuevaTarjeta.tipo_tar = 'C');
+                                    Write('     Saldo de tarjeta: $ ');
+                                    ReadLn(nuevaTarjeta.saldo_x_tarjeta);
+                                end;
+                                nuevaCuenta.cuenta_virtual[i] := nuevaTarjeta;
                             end;
-                            WriteLn('------------------');
+                            WriteLn('     -----------------------');
                             Seek(archivoCuentas, FileSize(archivoCuentas));
                             Write(archivoCuentas, nuevaCuenta);
+                            WriteLn();
+                            WriteLn('Cuenta creada exitosamente!');
                         end;
                     end
                     else
                     begin
                         Seek(archivoCuentas, cuentaUsuario);
                         Read(archivoCuentas, sesionCuentaUsuario);
-                        { if Length(sesionCuentaUsuario.cuenta_virtual) = 0 then
-                            WriteLn('Este usuario tiene cuenta asociada, pero no tiene tarjetas en ella...');
-                        -}
+                        cantidadTarjetas := 0;
                         for i := 1 to 5 do
-                        begin
-                            WriteLn('------------------');
-                            WriteLn('TARJETA Nro. ', i);
-                            WriteLn('  Codigo de banco: ', sesionCuentaUsuario.cuenta_virtual[i].cod_ban);
-                            WriteLn('  Tipo de tarjeta: ', sesionCuentaUsuario.cuenta_virtual[i].tipo_tar);
-                            WriteLn('  Saldo: ', sesionCuentaUsuario.cuenta_virtual[i].saldo_x_tarjeta);
-                        end;
-                        WriteLn('------------------');
+                            if sesionCuentaUsuario.cuenta_virtual[i].cod_ban <> -1 then
+                            begin
+                                cantidadTarjetas += 1;
+                                WriteLn('-----------------------');
+                                WriteLn('TARJETA Nro. ', i);
+                                WriteLn('  Codigo de banco: ', sesionCuentaUsuario.cuenta_virtual[i].cod_ban);
+                                WriteLn('  Tipo de tarjeta: ', sesionCuentaUsuario.cuenta_virtual[i].tipo_tar);
+                                WriteLn('  Saldo: $ ', sesionCuentaUsuario.cuenta_virtual[i].saldo_x_tarjeta:12:2);
+                            end;
+                        if (cantidadTarjetas > 0) then
+                            WriteLn('-----------------------')
+                        else
+                            WriteLn('Este usuario tiene cuenta asociada, pero no tiene tarjetas en ella...');
                         WriteLn();
-                        WriteLn('Saldo billetera: ', sesionCuentaUsuario.saldo_billetera);
+                        WriteLn('Saldo billetera (efectivo): $ ', sesionCuentaUsuario.saldo_billetera:1:2);
                     end;
                     WriteLn();
                     WriteLn();
@@ -533,7 +551,7 @@ begin
     else
     begin
         ClrScr;
-        WriteLn('   Sistema de usuario');
+        WriteLn('          Sistema de usuario');
         WriteLn('No se pudo iniciar sesion.');
         WriteLn();
         Write('Presione cualquier tecla para volver al menu principal...');
