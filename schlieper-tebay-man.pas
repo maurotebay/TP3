@@ -1,18 +1,59 @@
 
 {Comision 105 - Schlieper Tadeo / Tebay Mauro / Man Uriel}
 program tp3;
-uses Crt;
+uses Crt, sysutils;
 
 const
     RUTA_ARCHIVOS = 'C:\ayed\tp3\';
 
-{Esta opcion listara primero todas las entidades bancarias que ya est?n cargadas en el sistema en bancos.dat, y permitir? ingresar nuevos bancos. Por cada nuevo ingreso se deber? registrar el c?digo del banco y el nombre de la entidad.}
-procedure OpcionBancos;
 type        
     Banco = record
-        codigoBanco: integer; {(codigo de banco)}
+        codBanco: integer; {(codigo de banco)}
         nombre: string [30];
     end;
+
+    Comercio = record
+        codigoComercio:integer;
+        nombre:string[30];
+        cuit:string[12];
+        estado:boolean;
+    end;
+    
+    tarjeta = record
+        codBanco:integer;
+        tipoTarjeta:char; //D:debito, C:Credito
+        saldoTarjeta:real;
+    end;
+
+    cuentaVirtual = record
+        dni:string[8];
+        tarjetas:array [1..5] of tarjeta;
+        saldoBilletera:real;
+    end;
+
+    usuario=record
+        dni:string[8];
+        pass:integer;
+        nombreApellido:string[30];
+        mail:string[40];
+    end;
+
+    movimiento=record
+        dni:string[8];
+        codBanco:integer;
+        tipoTarjeta:char; //D:debito, C:credito
+        importe:real;
+        tipoMovimiento:char; //C:compras, E:envio
+        dia, mes, anio: word;
+        codigoComercio:integer;
+        dniOtroUsuario:string[8];
+    end;
+    arrayInicio= array [1..2] of integer; //primer campo es la pos en el archivo y el segundo es 1 si esta validado, de lo contrario 0
+var
+   archivoUsuarios:file of usuario;
+
+{Esta opcion listara primero todas las entidades bancarias que ya est?n cargadas en el sistema en bancos.dat, y permitir? ingresar nuevos bancos. Por cada nuevo ingreso se deber? registrar el c?digo del banco y el nombre de la entidad.}
+procedure OpcionBancos;
 var
     archivoBancos: file of Banco;
     nuevoBanco: Banco;
@@ -27,7 +68,7 @@ begin
     begin
         read(archivoBancos, nuevoBanco);
         writeln('Nombre: ', nuevoBanco.nombre);
-        writeln('Codigo: ',  nuevoBanco.codigoBanco);
+        writeln('Codigo: ',  nuevoBanco.codBanco);
         writeln;
     end;
     
@@ -39,7 +80,7 @@ begin
                 WriteLn('Ingrese el nombre del banco');
                 ReadLn(nuevoBanco.nombre);
                 WriteLn('Ingrese el codigo del banco');
-                ReadLn(nuevoBanco.codigoBanco);
+                ReadLn(nuevoBanco.codBanco);
                 Write(archivoBancos, nuevoBanco);
             end;
     until (opcion = 'no') OR (opcion = 'NO') OR (opcion = 'No');
@@ -48,13 +89,6 @@ begin
 end;
 
 procedure OpcionABM;
-type
-    Comercio = record
-        codigoComercio:integer;
-        nombre:string[30];
-        cuit:string[12];
-        estado:boolean;
-        end;
 var
     archivoComercios:file of Comercio;
     nuevoComercio: Comercio;
@@ -218,9 +252,211 @@ begin
     end;
 end;
 
-procedure OpcionUsuarios;
+procedure Borrar(var cadena: string);
 begin
-  
+  if (Length(cadena) > 0) then            (* verifica que haya al menos un caracter para borrar *)
+  begin
+    Delete(cadena, Length(cadena), 1);    (* actualiza cadena borrando un caracter en su ultima posicion *)
+    GotoXY(WhereX - 1, WhereY);           (* mueve el cursor una posicion a la izq *)
+    Write(' ');                           (* escribe un espacio en blanco para invisibilizar el lugar *)
+    GotoXY(WhereX - 1, WhereY);           (* vuelve a mover el cursor una posicion a la izq *)
+  end;
+end;
+
+Function EncriptarClaves(claveReal:integer):boolean;
+var
+  intentos: integer;
+  caracter: char;
+  clave: string;
+  claveInt:integer;
+
+begin
+  intentos := 3;
+  WriteLn('Ingrese la clave (maximo 8 caracteres):');
+  repeat
+    if intentos < 3 then
+    begin
+      ClrScr;
+      WriteLn('Clave incorrecta. Ingrese nuevamente (', intentos, ' intentos restantes):');
+    end;
+    clave := '';
+    repeat
+      caracter := ReadKey;
+      while (KeyPressed) do ReadKey;              (* si queda algo en buffer, se captura por si es un caracter de control *)
+      if (Ord(caracter) = 8) then Borrar(clave);  (* borra si la tecla ingresada es BS (backspace) *)
+      if (Ord(caracter) >= 32) then               (* igualmente verifica que el caracter ingresado no sea de control *)
+      begin
+        clave := clave + caracter;
+        Write('*');
+      end;
+    until (Length(clave) >= 8) OR (Ord(caracter) = 10) OR (Ord(caracter) = 13);
+    (* #10 es LF y #13 es CR en ASCII (tecla Enter en Windows equivale a CR LF) *)
+    WriteLn();
+    intentos := intentos - 1;
+    claveInt:=StrToInt(clave);
+  until (claveInt = claveReal) OR (intentos < 1);
+  WriteLn(); WriteLn();
+  if claveInt = claveReal then
+  begin
+    EncriptarClaves:=True;
+    WriteLn('La clave es correcta.');
+  end
+  else
+  begin
+    EncriptarClaves:=False;
+    WriteLn('La clave es incorrecta. Ya no quedan mas intentos.');
+  end;
+end;
+
+function buscarDni(dni:string):integer;
+var
+    unUser:usuario;
+begin
+    read(archivoUsuarios, unUser);
+    while (unUser.dni <> dni) AND (not(eof(archivoUsuarios))) do  //mientras el dni que busco sea distinto del que esta en el archivo
+    begin                                                         // y no sea el final del mismo, sigo buscando
+        read(archivoUsuarios, unUser);              //busco el usuario por el campo de dni
+    end;
+    if unUser.dni = dni then
+    begin
+        buscarDni:=filepos(archivoUsuarios)-1;          //si el usuario existe devuelvo la posicion en el archivo
+    end
+    else
+    begin
+        buscarDni:=-1;          //si no existe devuelvo -1 para luego darlo de alta
+    end;
+end;
+
+procedure altaUsuarios(dni:string[8]);
+var 
+    newUsuario:usuario;
+begin
+    seek(archivoUsuarios, FileSize(archivoUsuarios));  //posiciono el puntero al final del archivo
+    newUsuario.dni:=dni;
+    writeln('Ingrese su clave: (numero entre -32768 to 32767)');
+    readln(newUsuario.pass);
+    WriteLn('Ingrese su nombre y apellido: ');
+    readln(newUsuario.nombreApellido);
+    writeln('Ingrese su mail: ');
+    readln(newUsuario.mail);
+
+    write(archivoUsuarios, newUsuario); //agrego el nuevo usuario al archivo
+end;
+
+function Inicio:arrayInicio;
+var
+    dni:string[8];
+    unUsuario: usuario;
+    pos:integer;
+begin
+    writeln('Ingrese su nro de DNI:');
+    readln(dni);
+    pos:=buscarDni(dni);
+    if pos = -1 then
+    begin
+        altaUsuarios(dni);
+        Inicio[1]:=filepos(archivoUsuarios)-1; //el 1er campo del array que devuelve es la pos en el archivo
+        Inicio[2]:=1;
+    end
+    else                                    //si existe el dni en el archivo
+        seek(archivoUsuarios, pos);
+        read(archivoUsuarios, unUsuario);
+        Inicio[1]:=pos;
+        if (EncriptarClaves(unUsuario.pass)) then       //pide contraseña y corrobora que sea la misma
+        begin
+            Inicio[2]:=1;  //si pone la contraseña bien
+        end
+        else
+        begin
+            Inicio[2]:=0    //si pone la contraseña mal
+        end;
+end;
+
+procedure OpcionUsuarios;
+const
+    noIngresado='El usuario no esta validado, inicie sesion correctamente para utilizar esta funcion';
+var
+    opc:integer;
+    usuarioValidado:arrayInicio;
+    archivoUsuarios: file of usuario;
+begin
+    assign(archivoUsuarios, RUTA_ARCHIVOS + 'usuarios.dat');
+    reset(archivoUsuarios);  //abro archivo usuarios.dat
+    WriteLn('   USUARIOS');
+    WriteLn;
+    WriteLn('1) Inicio Sesion');
+    WriteLn('2) Cuentas');
+    WriteLn('3) Envios de Dinero');
+    WriteLn('4) Compras en Comercios');
+    writeln('5) Movimientos');
+    writeln('6) Salir');
+    repeat
+        Write('Seleccione ingresando una de las opciones: ');
+        ReadLn(opc);
+    until (opc >= 1) AND (opc <= 6);
+    case opc of
+        1: begin
+            ClrScr;
+            usuarioValidado:=Inicio;
+            OpcionUsuarios;
+        end;
+        2: begin
+            ClrScr;
+            if usuarioValidado[2]=0 then
+            begin
+                writeln(noIngresado);
+                writeln();
+                OpcionUsuarios;
+            end
+            else
+            begin
+                //Cuentas;
+                OpcionUsuarios;
+            end;
+        end;
+        3: begin
+            ClrScr;
+            if usuarioValidado[2]=0 then
+            begin
+                writeln(noIngresado);
+                writeln();
+                OpcionUsuarios;
+            end
+            else
+            begin
+                //Envios;
+                OpcionUsuarios;
+            end;
+        end;
+        4: begin
+            ClrScr;
+            if usuarioValidado[2]=0 then
+            begin
+                writeln(noIngresado);
+                writeln();
+                OpcionUsuarios;
+            end
+            else
+            begin
+                //Compras;
+                OpcionUsuarios;
+            end;
+        end;
+        5: begin
+            ClrScr;
+            if usuarioValidado[2]=0 then
+            begin
+                writeln(noIngresado);
+                writeln();
+                OpcionUsuarios;
+            end
+            else
+            begin
+                //Movimientos;
+                OpcionUsuarios;
+            end;
+        end;
+    end;
 end;
 
 procedure Menu;
