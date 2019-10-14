@@ -2,17 +2,20 @@
 program crear_archivos;
 uses Crt;
 
+const
+    RUTA_ARCHIVOS = 'C:\ayed\tp3\';
+
 procedure Bancos;
 type        
     Banco = record
-        codBanco: integer; {(c?digo de banco)}
+        codBanco: integer; {(codigo de banco)}
         nombre: string [30];
     end;
 var
     archivoBancos: file of Banco;
     nuevoBanco: Banco;
 begin
-    assign(archivoBancos, 'C:\ayed\tp3\Bancos.dat');
+    assign(archivoBancos, RUTA_ARCHIVOS + 'Bancos.dat');
     rewrite(archivoBancos);
     
     nuevoBanco.nombre := 'Banco Patagonia';
@@ -37,12 +40,12 @@ type
         nombre:string[30];
         cuit:string[12];
         estado:boolean;
-        end;
+    end;
 var
     archivoComercios:file of Comercio;
     nuevoComercio: Comercio;
 begin
-    assign(archivoComercios, 'C:\ayed\tp3\Comercios.dat');
+    assign(archivoComercios, RUTA_ARCHIVOS + 'Comercios.dat');
     rewrite(archivoComercios);
 
     nuevoComercio.codigoComercio:=0;
@@ -72,17 +75,17 @@ type
         codBanco:integer;
         tipoTarjeta:char; //D:debito, C:Credito
         saldoTarjeta:real;
-        end;
+    end;
     cuentaVirtual = record
         dni:string[8];
         tarjetas:array [1..5] of tarjeta;
         saldoBilletera:real;
-        end;
+    end;
 var
     archivoCuentas: file of cuentaVirtual;
     newCuenta: cuentaVirtual;
 begin
-    assign(archivoCuentas, 'C:\ayed\tp3\cuentas-virtuales.dat');
+    assign(archivoCuentas, RUTA_ARCHIVOS + 'cuentas-virtuales.dat');
     rewrite(archivoCuentas);
 
     newCuenta.dni:='21568468';
@@ -107,29 +110,29 @@ type
         pass:integer;
         nombreApellido:string[30];
         mail:string[40];
-        end;
+    end;
 var
     archivoUsuarios:file of usuario;
     newUsuario:usuario;
 begin
-     assign(archivoUsuarios, 'C:\ayed\tp3\usuarios.dat');
-     rewrite(archivoUsuarios);
+    assign(archivoUsuarios, RUTA_ARCHIVOS + 'usuarios.dat');
+    rewrite(archivoUsuarios);
 
-     newUsuario.dni:='44556699';
-     newUsuario.pass:=12345;
-     newUsuario.nombreApellido:='Juan Perez';
-     newUsuario.mail:='juanperez@tumail.com';
+    newUsuario.dni:='44556699';
+    newUsuario.pass:=12345;
+    newUsuario.nombreApellido:='Juan Perez';
+    newUsuario.mail:='juanperez@tumail.com';
 
-     write(archivoUsuarios, newUsuario);
+    write(archivoUsuarios, newUsuario);
 
-     newUsuario.dni:='56832145';
-     newUsuario.pass:=54625;
-     newUsuario.nombreApellido:='Jose Gomez';
-     newUsuario.mail:='pepegomez@tumail.com';
+    newUsuario.dni:='56832145';
+    newUsuario.pass:=54625;
+    newUsuario.nombreApellido:='Jose Gomez';
+    newUsuario.mail:='pepegomez@tumail.com';
 
-     write(archivoUsuarios, newUsuario);
+    write(archivoUsuarios, newUsuario);
 
-     close(archivoUsuarios);
+    close(archivoUsuarios);
 end;
 
 procedure Movimientos;
@@ -148,7 +151,7 @@ var
     archivoMovimientos:file of movimiento;
     newMovimiento:movimiento;
 begin
-    assign(archivoMovimientos, 'C:\ayed\tp3\movimientos.dat');
+    assign(archivoMovimientos, RUTA_ARCHIVOS + 'movimientos.dat');
     rewrite(archivoMovimientos);
 
     newMovimiento.dni:='12345678';
@@ -168,10 +171,20 @@ begin
 end;
 
 begin
-  Bancos;
-  Comercios;
-  CuentasVirtuales;
-  Usuarios;
-  Movimientos;
-  ReadKey;
+    WriteLn('Por favor, asegurate que exista la carpeta "' + RUTA_ARCHIVOS + '" antes de continuar.');
+    WriteLn('De lo contrario se cerrara el programa sin confirmacion.');
+    WriteLn();
+    Write('Pulse cualquier tecla para continuar y crear los archivos...');
+    ReadKey;
+    ClrScr;
+    WriteLn('Creando archivos...');
+    WriteLn();
+    Bancos;
+    Comercios;
+    CuentasVirtuales;
+    Usuarios;
+    Movimientos;
+    WriteLn('Todos los archivos fueron creados exitosamente en "' + RUTA_ARCHIVOS + '".');
+    Write('Pulse cualquier tecla para salir');
+    ReadKey;
 end.
