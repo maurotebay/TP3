@@ -6,53 +6,49 @@ uses Crt, sysutils;
 const
     RUTA_ARCHIVOS = 'C:\ayed\tp3\';
 
-type        
-    Banco = record
-        codBanco: integer; {(codigo de banco)}
-        nombre: string [30];
+type
+    Usuario = record
+        dni: string[8];
+        contrasena: integer;
+        ape_nom: string[30];
+        mail: string[40];
     end;
-
-    Comercio = record
-        codigoComercio:integer;
-        nombre:string[30];
-        cuit:string[12];
-        estado:boolean;
-    end;
-    
     tarjeta = record
-        codBanco:integer;
-        tipoTarjeta:char; //D:debito, C:Credito
-        saldoTarjeta:real;
+        cod_ban: integer;
+        tipo_tar: char; //D:debito, C:Credito
+        saldo_x_tarjeta: real;
     end;
-
     cuentaVirtual = record
-        dni:string[8];
-        tarjetas:array [1..5] of tarjeta;
-        saldoBilletera:real;
+        dni: string[8];
+        cuenta_virtual: array [1..5] of tarjeta;
+        saldo_billetera: real;
+    end;
+    movimiento = record
+        dni: string[8];
+        cod_ban: integer;
+        tipo_tar: char; //D:debito, C:credito
+        importe: real;
+        tipo_movi: char; //C:compras, E:envio
+        dia, mes, ano: word;
+        cod_com: integer;
+        dni_otro_usuario: string[8];
+    end;
+    Comercio = record
+        cod_com: integer;
+        nombre: string[30];
+        cuit: string[12];
+        estado: boolean;
+    end;
+    Banco = record
+        cod_ban: integer; {(codigo de banco)}
+        nombre: string[30];
     end;
 
-    usuario=record
-        dni:string[8];
-        pass:integer;
-        nombreApellido:string[30];
-        mail:string[40];
-    end;
-
-    movimiento=record
-        dni:string[8];
-        codBanco:integer;
-        tipoTarjeta:char; //D:debito, C:credito
-        importe:real;
-        tipoMovimiento:char; //C:compras, E:envio
-        dia, mes, anio: word;
-        codigoComercio:integer;
-        dniOtroUsuario:string[8];
-    end;
-    arrayInicio= array [1..2] of integer; //primer campo es la pos en el archivo y el segundo es 1 si esta validado, de lo contrario 0
 var
-   archivoUsuarios:file of usuario;
+    // archivoUsuarios: file of usuario; { es global para poder usar el archivo a traves de distintas funciones }
+    usuarioIniciado: integer; { es global para mantener la sesion iniciada y permitir un ingreso por primera vez }
 
-{Esta opcion listara primero todas las entidades bancarias que ya est?n cargadas en el sistema en bancos.dat, y permitir? ingresar nuevos bancos. Por cada nuevo ingreso se deber? registrar el c?digo del banco y el nombre de la entidad.}
+{Esta opcion listara primero todas las entidades bancarias que ya estan cargadas en el sistema en bancos.dat, y permitira ingresar nuevos bancos. Por cada nuevo ingreso se debera registrar el codigo del banco y el nombre de la entidad.}
 procedure OpcionBancos;
 var
     archivoBancos: file of Banco;
@@ -68,7 +64,7 @@ begin
     begin
         read(archivoBancos, nuevoBanco);
         writeln('Nombre: ', nuevoBanco.nombre);
-        writeln('Codigo: ',  nuevoBanco.codBanco);
+        writeln('Codigo: ',  nuevoBanco.cod_ban);
         writeln;
     end;
     
@@ -80,7 +76,7 @@ begin
                 WriteLn('Ingrese el nombre del banco');
                 ReadLn(nuevoBanco.nombre);
                 WriteLn('Ingrese el codigo del banco');
-                ReadLn(nuevoBanco.codBanco);
+                ReadLn(nuevoBanco.cod_ban);
                 Write(archivoBancos, nuevoBanco);
             end;
     until (opcion = 'no') OR (opcion = 'NO') OR (opcion = 'No');
@@ -106,9 +102,9 @@ begin
     begin
         read(archivoComercios, nuevoComercio);
         writeln('Nombre: ', nuevoComercio.nombre);
-        writeln('cuit: ',  nuevoComercio.cuit);
-        writeln('estado: ',  nuevoComercio.estado);
-        writeln('codigo: ',  nuevoComercio.codigoComercio);
+        writeln('CUIT: ',  nuevoComercio.cuit);
+        writeln('Estado: ',  nuevoComercio.estado);
+        writeln('Codigo: ',  nuevoComercio.cod_com);
         writeln;
     end;
     Close(archivoComercios);
@@ -134,9 +130,9 @@ begin
 
             WriteLn('Ingrese el nombre del comercio');
             ReadLn(nuevoComercio.nombre);
-            WriteLn('Ingrese el cuit del comercio');
+            WriteLn('Ingrese el CUIT del comercio');
             ReadLn(nuevoComercio.cuit);
-            nuevoComercio.codigoComercio := posFinal;
+            nuevoComercio.cod_com := posFinal;
             nuevoComercio.estado := True;
             Write(archivoComercios, nuevoComercio);
 
@@ -199,12 +195,12 @@ begin
                     writeln('Nombre: ', nuevoComercio.nombre);
                     writeln('CUIT: ',  nuevoComercio.cuit);
                     writeln('Estado: ',  nuevoComercio.estado);
-                    writeln('Codigo: ',  nuevoComercio.codigoComercio);
+                    writeln('Codigo: ',  nuevoComercio.cod_com);
                     writeln;
                     WriteLn('1) Modificar Nombre.');
-                    WriteLn('2) Modificar Cuit.');
+                    WriteLn('2) Modificar CUIT.');
                     WriteLn('3) Modificar Estado.');
-                    WriteLn('4) Salir.');
+                    WriteLn('4) Volver al menu principal.');
                     WriteLn;
                     repeat
                         Write('Seleccione ingresando una de las opciones: ');
@@ -220,10 +216,10 @@ begin
                             WriteLn;
                         end;
                         2: begin
-                            WriteLn('Ingrese el cuit del comercio');
+                            WriteLn('Ingrese el CUIT del comercio');
                             ReadLn(nuevoComercio.cuit);
                             ClrScr;
-                            WriteLn('El cuit se ha modificado satisfactoriamente.');
+                            WriteLn('El CUIT se ha modificado satisfactoriamente.');
                             WriteLn;
                         end;
                         3: begin
@@ -233,18 +229,15 @@ begin
                             WriteLn;
                         end;
                     end;
-
                 until opcion = 4;
-
                 Seek(archivoComercios, codigoComercio);{vuelvo a la posicion, ya que el read aumenta el puntero}
                 Write(archivoComercios, nuevoComercio);{sobreescribo el comercio modificado en la misma posicion que estaba.}
-
             end
             else 
-                begin
-                    WriteLn('El codigo de comercio no fue encontrado.');
-                    ReadKey;
-                end;
+            begin
+                WriteLn('El codigo de comercio no fue encontrado.');
+                ReadKey;
+            end;
 
             close(archivoComercios);
             OpcionABM;
@@ -263,21 +256,20 @@ begin
   end;
 end;
 
-Function EncriptarClaves(claveReal:integer):boolean;
+function IngresarContrasena(claveReal: integer): boolean;
 var
   intentos: integer;
   caracter: char;
   clave: string;
-  claveInt:integer;
-
+  claveInt: integer;
 begin
   intentos := 3;
-  WriteLn('Ingrese la clave (maximo 8 caracteres):');
+  WriteLn('Ingrese la contrasena (solo valida entre -32768 a 32767):');
   repeat
     if intentos < 3 then
     begin
       ClrScr;
-      WriteLn('Clave incorrecta. Ingrese nuevamente (', intentos, ' intentos restantes):');
+      WriteLn('Contrasena incorrecta. Ingrese nuevamente (', intentos, ' intentos restantes):');
     end;
     clave := '';
     repeat
@@ -289,28 +281,62 @@ begin
         clave := clave + caracter;
         Write('*');
       end;
-    until (Length(clave) >= 8) OR (Ord(caracter) = 10) OR (Ord(caracter) = 13);
+    until ((Length(clave) >= 5) AND (clave[1] <> '-')) OR (Length(clave) >= 6) OR (Ord(caracter) = 10) OR (Ord(caracter) = 13);
     (* #10 es LF y #13 es CR en ASCII (tecla Enter en Windows equivale a CR LF) *)
     WriteLn();
     intentos := intentos - 1;
-    claveInt:=StrToInt(clave);
+    claveInt := StrToIntDef(clave, 0);    (* convierte la clave ingresada a integer, y si no respeta formato de numero vale 0 *)
   until (claveInt = claveReal) OR (intentos < 1);
   WriteLn(); WriteLn();
   if claveInt = claveReal then
   begin
-    EncriptarClaves:=True;
+    IngresarContrasena := True;
     WriteLn('La clave es correcta.');
   end
   else
   begin
-    EncriptarClaves:=False;
+    IngresarContrasena := False;
     WriteLn('La clave es incorrecta. Ya no quedan mas intentos.');
   end;
 end;
 
-function buscarDni(dni:string):integer;
+procedure altaUsuario(var archivo: file of Usuario; dni: string[8]);
 var
-    unUser:usuario;
+    newUsuario: usuario;
+begin
+    Seek(archivo, FileSize(archivo));  //posiciono el puntero al final del archivo
+    newUsuario.dni := dni;
+    WriteLn('Contrasena (numero entre -32768 a 32767): ');
+    ReadLn(newUsuario.contrasena);
+    WriteLn('Apellido y nombre: ');
+    ReadLn(newUsuario.ape_nom);
+    WriteLn('Mail: ');
+    ReadLn(newUsuario.mail);
+    Write(archivo, newUsuario); //agrego el nuevo usuario al archivo
+end;
+
+function buscarCuentaPorDni(var archivo: file of CuentaVirtual; dni: string): integer;
+var
+    unaCuenta: CuentaVirtual;
+begin
+    read(archivo, unaCuenta);
+    while (unaCuenta.dni <> dni) AND (not(eof(archivo))) do  //mientras el dni que busco sea distinto del que esta en el archivo
+    begin                                                    // y no sea el final del mismo, sigo buscando
+        read(archivo, unaCuenta);              //busco la cuenta por el campo de dni
+    end;
+    if unaCuenta.dni = dni then
+    begin
+        buscarCuentaPorDni := filepos(archivo) - 1;          //si la cuenta existe devuelvo la posicion en el archivo
+    end
+    else
+    begin
+        buscarCuentaPorDni := -1;          //si no existe devuelvo -1 para luego darla de alta
+    end;
+end;
+
+function buscarUsuarioPorDni(var archivoUsuarios: file of Usuario; dni: string): integer;
+var
+    unUser: usuario;
 begin
     read(archivoUsuarios, unUser);
     while (unUser.dni <> dni) AND (not(eof(archivoUsuarios))) do  //mientras el dni que busco sea distinto del que esta en el archivo
@@ -319,144 +345,202 @@ begin
     end;
     if unUser.dni = dni then
     begin
-        buscarDni:=filepos(archivoUsuarios)-1;          //si el usuario existe devuelvo la posicion en el archivo
+        buscarUsuarioPorDni:=filepos(archivoUsuarios)-1;          //si el usuario existe devuelvo la posicion en el archivo
     end
     else
     begin
-        buscarDni:=-1;          //si no existe devuelvo -1 para luego darlo de alta
+        buscarUsuarioPorDni:=-1;          //si no existe devuelvo -1 para luego darlo de alta
     end;
 end;
 
-procedure altaUsuarios(dni:string[8]);
-var 
-    newUsuario:usuario;
-begin
-    seek(archivoUsuarios, FileSize(archivoUsuarios));  //posiciono el puntero al final del archivo
-    newUsuario.dni:=dni;
-    writeln('Ingrese su clave: (numero entre -32768 to 32767)');
-    readln(newUsuario.pass);
-    WriteLn('Ingrese su nombre y apellido: ');
-    readln(newUsuario.nombreApellido);
-    writeln('Ingrese su mail: ');
-    readln(newUsuario.mail);
-
-    write(archivoUsuarios, newUsuario); //agrego el nuevo usuario al archivo
-end;
-
-function Inicio:arrayInicio;
+procedure IniciarSesion(var archivo: file of Usuario);
 var
-    dni:string[8];
+    dni: string[8];
     unUsuario: usuario;
-    pos:integer;
 begin
-    writeln('Ingrese su nro de DNI:');
-    readln(dni);
-    pos:=buscarDni(dni);
-    if pos = -1 then
+    WriteLn('    INICIO DE SESION');
+    WriteLn();
+    WriteLn();
+    WriteLn('Ingrese sus datos para iniciar sesion:');
+    WriteLn();
+    Write('DNI: ');
+    ReadLn(dni);
+    usuarioIniciado := buscarUsuarioPorDni(archivo, dni);
+    if usuarioIniciado = -1 then
     begin
-        altaUsuarios(dni);
-        Inicio[1]:=filepos(archivoUsuarios)-1; //el 1er campo del array que devuelve es la pos en el archivo
-        Inicio[2]:=1;
+        WriteLn('El DNI ingresado no esta registrado como usuario.');
+        WriteLn('Complete los siguientes campos para darse de alta:');
+        altaUsuario(archivo, dni);
+        usuarioIniciado := FilePos(archivo) - 1; // se identifica al usuario mediante la posicion en el archivo
     end
-    else                                    //si existe el dni en el archivo
-        seek(archivoUsuarios, pos);
-        read(archivoUsuarios, unUsuario);
-        Inicio[1]:=pos;
-        if (EncriptarClaves(unUsuario.pass)) then       //pide contraseÃ±a y corrobora que sea la misma
-        begin
-            Inicio[2]:=1;  //si pone la contraseÃ±a bien
-        end
-        else
-        begin
-            Inicio[2]:=0    //si pone la contraseÃ±a mal
-        end;
+    else
+    begin                                    //si existe el dni en el archivo
+        Seek(archivo, usuarioIniciado);
+        Read(archivo, unUsuario);
+        if (NOT IngresarContrasena(unUsuario.contrasena)) then     //pide contraseña y corrobora que sea la misma
+            usuarioIniciado := -1;   //si pone la contraseña mal, el inicio de sesion fallara
+    end;
 end;
 
 procedure OpcionUsuarios;
-const
-    noIngresado='El usuario no esta validado, inicie sesion correctamente para utilizar esta funcion';
 var
-    opc:integer;
-    usuarioValidado:arrayInicio;
-    archivoUsuarios: file of usuario;
+    opcion: integer;
+    crearCuenta: string;
+    i: integer;
+    archivoUsuarios: file of Usuario;
+    archivoCuentas: file of CuentaVirtual;
+    sesionUsuario: Usuario;
+    cuentaUsuario: integer;
+    sesionCuentaUsuario, nuevaCuenta: CuentaVirtual;
+    nuevaTarjeta: Tarjeta;
 begin
-    assign(archivoUsuarios, RUTA_ARCHIVOS + 'usuarios.dat');
-    reset(archivoUsuarios);  //abro archivo usuarios.dat
-    WriteLn('   USUARIOS');
-    WriteLn;
-    WriteLn('1) Inicio Sesion');
-    WriteLn('2) Cuentas');
-    WriteLn('3) Envios de Dinero');
-    WriteLn('4) Compras en Comercios');
-    writeln('5) Movimientos');
-    writeln('6) Salir');
-    repeat
-        Write('Seleccione ingresando una de las opciones: ');
-        ReadLn(opc);
-    until (opc >= 1) AND (opc <= 6);
-    case opc of
-        1: begin
+    Assign(archivoUsuarios, RUTA_ARCHIVOS + 'usuarios.dat');
+    Assign(archivoCuentas, RUTA_ARCHIVOS + 'cuentas-virtuales.dat');
+    Reset(archivoUsuarios);
+    Reset(archivoCuentas);
+    opcion := 0;
+    if (usuarioIniciado = -1) then
+        ClrScr;
+        WriteLn('   Sistema de Usuario');
+        IniciarSesion(archivoUsuarios);
+        WriteLn();
+        WriteLn();
+    if (usuarioIniciado <> -1) then
+    begin
+        repeat
+            Seek(archivoUsuarios, usuarioIniciado);
+            Read(archivoUsuarios, sesionUsuario);
             ClrScr;
-            usuarioValidado:=Inicio;
-            OpcionUsuarios;
-        end;
-        2: begin
-            ClrScr;
-            if usuarioValidado[2]=0 then
+            WriteLn('   Sistema de Usuario');
+            if (opcion <> 1) then
             begin
-                writeln(noIngresado);
-                writeln();
-                OpcionUsuarios;
-            end
-            else
-            begin
-                //Cuentas;
-                OpcionUsuarios;
+                Write('Sesion iniciada como ');
+                TextBackground(Blue);
+                TextColor(White);
+                Write(sesionUsuario.ape_nom);
+                NormVideo;
+                WriteLn('.');
             end;
-        end;
-        3: begin
-            ClrScr;
-            if usuarioValidado[2]=0 then
-            begin
-                writeln(noIngresado);
-                writeln();
-                OpcionUsuarios;
-            end
-            else
-            begin
-                //Envios;
-                OpcionUsuarios;
+            WriteLn();
+            WriteLn();
+            case opcion of
+                0: begin
+                    WriteLn('1) Inicio sesion');
+                    WriteLn('2) Cuentas');
+                    WriteLn('3) Envios de dinero');
+                    WriteLn('4) Compras en comercios');
+                    WriteLn('5) Movimientos');
+                    WriteLn('6) Volver al menu principal.');
+                    WriteLn;
+                    repeat
+                        Write('Seleccione ingresando una de las opciones: ');
+                        ReadLn(opcion);
+                    until (opcion >= 1) AND (opcion <= 6);
+                end;
+                1: begin
+                    IniciarSesion(archivoUsuarios);
+                    opcion := 0;
+                    ReadKey;
+                end;
+                2: begin
+                    WriteLn('    CUENTAS');
+                    WriteLn();
+                    cuentaUsuario := buscarCuentaPorDni(archivoCuentas, sesionUsuario.dni);
+                    if cuentaUsuario = -1 then
+                    begin
+                        WriteLn('Actualmente este usuario no tiene una cuenta asociada.');
+                        repeat
+                            WriteLn('Desea crear una? (si / no)');
+                            ReadLn(crearCuenta);
+                        until (crearCuenta = 'no') OR (crearCuenta = 'NO') OR (crearCuenta = 'No') OR(crearCuenta = 'si') OR (crearCuenta = 'SI') OR (crearCuenta = 'Si');
+                        if (crearCuenta = 'si') OR (crearCuenta = 'SI') OR (crearCuenta = 'Si') then
+                        begin
+                            WriteLn();
+                            WriteLn('Puede agregar hasta 5 tarjetas en su nueva cuenta.');
+                            WriteLn('Llene los datos de las tarjetas (finalice con 0):');
+                            nuevaCuenta.saldo_billetera := 0;
+                            i := 1;
+                            WriteLn('------------------');
+                            WriteLn('TARJETA Nro. ', i);
+                            Write('  Codigo de banco: ');
+                            ReadLn(nuevaTarjeta.cod_ban);
+                            while (i <= 5) AND (nuevaTarjeta.cod_ban <> 0) do
+                            begin
+                                repeat
+                                    Write('  Debito o Credito? (D / C): ');
+                                    ReadLn(nuevaTarjeta.tipo_tar);
+                                until (nuevaTarjeta.tipo_tar = 'D') OR (nuevaTarjeta.tipo_tar = 'C');
+                                Write('  Saldo de tarjeta: ');
+                                ReadLn(nuevaTarjeta.saldo_x_tarjeta);
+                                nuevaCuenta.cuenta_virtual[i] := nuevaTarjeta;
+                                nuevaCuenta.saldo_billetera := nuevaCuenta.saldo_billetera + nuevaTarjeta.saldo_x_tarjeta;
+                                i := i + 1;
+                                if (i <= 5) then
+                                begin
+                                    WriteLn('------------------');
+                                    WriteLn('TARJETA Nro. ', i);
+                                    ReadLn(nuevaTarjeta.cod_ban);
+                                end;
+                            end;
+                            WriteLn('------------------');
+                            Seek(archivoCuentas, FileSize(archivoCuentas));
+                            Write(archivoCuentas, nuevaCuenta);
+                        end;
+                    end
+                    else
+                    begin
+                        Seek(archivoCuentas, cuentaUsuario);
+                        Read(archivoCuentas, sesionCuentaUsuario);
+                        { if Length(sesionCuentaUsuario.cuenta_virtual) = 0 then
+                            WriteLn('Este usuario tiene cuenta asociada, pero no tiene tarjetas en ella...');
+                        -}
+                        for i := 1 to 5 do
+                        begin
+                            WriteLn('------------------');
+                            WriteLn('TARJETA Nro. ', i);
+                            WriteLn('  Codigo de banco: ', sesionCuentaUsuario.cuenta_virtual[i].cod_ban);
+                            WriteLn('  Tipo de tarjeta: ', sesionCuentaUsuario.cuenta_virtual[i].tipo_tar);
+                            WriteLn('  Saldo: ', sesionCuentaUsuario.cuenta_virtual[i].saldo_x_tarjeta);
+                        end;
+                        WriteLn('------------------');
+                        WriteLn();
+                        WriteLn('Saldo billetera: ', sesionCuentaUsuario.saldo_billetera);
+                    end;
+                    WriteLn();
+                    WriteLn();
+                    Write('Presione cualquier tecla para volver al Sistema de Usuario...');
+                    opcion := 0;
+                    ReadKey;
+                end;
+                3: begin
+                    WriteLn('Opcion 3 elegida');
+                    opcion := 0;
+                    ReadKey;
+                end;
+                4: begin
+                    WriteLn('Opcion 4 elegida');
+                    opcion := 0;
+                    ReadKey;
+                end;
+                5: begin
+                    WriteLn('Opcion 5 elegida');
+                    opcion := 0;
+                    ReadKey;
+                end;
             end;
-        end;
-        4: begin
-            ClrScr;
-            if usuarioValidado[2]=0 then
-            begin
-                writeln(noIngresado);
-                writeln();
-                OpcionUsuarios;
-            end
-            else
-            begin
-                //Compras;
-                OpcionUsuarios;
-            end;
-        end;
-        5: begin
-            ClrScr;
-            if usuarioValidado[2]=0 then
-            begin
-                writeln(noIngresado);
-                writeln();
-                OpcionUsuarios;
-            end
-            else
-            begin
-                //Movimientos;
-                OpcionUsuarios;
-            end;
-        end;
+        until (opcion = 6) OR (usuarioIniciado = -1);
+    end
+    else
+    begin
+        ClrScr;
+        WriteLn('   Sistema de usuario');
+        WriteLn('No se pudo iniciar sesion.');
+        WriteLn();
+        Write('Presione cualquier tecla para volver al menu principal...');
+        ReadKey;
     end;
+    Close(archivoUsuarios);
+    Close(archivoCuentas);
 end;
 
 procedure Menu;
@@ -464,9 +548,15 @@ var
     opcion: integer;
 begin
     ClrScr;
-    WriteLn('   MENU');
+    Write('Bienvenido al sistema de ');
+    TextBackground(Green);
+    TextColor(White);
+    WriteLn('Billetera Electronica o Virtual');
+    NormVideo;
+    WriteLn();
+    WriteLn('         MENU');
     WriteLn;
-    WriteLn('1) Bancos');
+    WriteLn('1) Bancos (listar y agregar bancos)');
     WriteLn('2) ABM de Comercios Adheridos');
     WriteLn('3) Usuarios');
     WriteLn('4) Fin');
@@ -474,19 +564,17 @@ begin
         Write('Seleccione ingresando una de las opciones: ');
         ReadLn(opcion);
     until (opcion >= 1) AND (opcion <= 4);
+    ClrScr;
     case opcion of
         1: begin
-            ClrScr;
             OpcionBancos;
             Menu;
         end;
         2: begin
-            ClrScr;
             OpcionABM;
             Menu;
         end;
         3: begin
-            ClrScr;
             OpcionUsuarios;
             Menu;
         end;
@@ -494,6 +582,7 @@ begin
 end;
 
 begin
+  usuarioIniciado := -1;
   Menu;
   Write('Presione cualquier tecla para salir del programa');
   ReadKey;
