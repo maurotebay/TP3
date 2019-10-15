@@ -457,7 +457,7 @@ begin
         writeln('Ingrese el DNI del usuario al cual quiere enviar dinero:');
         ReadLn(dniRecibe);
         posReceptor:=buscarCuentaPorDni(dniRecibe);
-        if (posReceptor<>-1) OR (cuentaEnvia.saldo_billetera = 0.0) then
+        if (posReceptor<>-1) AND (cuentaEnvia.saldo_billetera <> 0.0) then
         begin
             repeat
                 writeln('El saldo de su billetera virtual es: $', cuentaEnvia.saldo_billetera:1:2);
@@ -467,7 +467,7 @@ begin
             until (monto<=cuentaEnvia.saldo_billetera);
             seek(archivoMovimientos, filesize(archivoMovimientos));  //me posiciono al final del archivo ya que este esta ordenado de forma ascendente, osea la fecha mas reciente ira al final del mismo
             seek(archivoCuentas, posReceptor);    //me posiciono en el registro del que va a recibir dinero
-            read(archivoCuentas, cuentaRecibe);   //accedo a el registro de la cuenta del receptor del dinero
+            read(archivoCuentas, cuentaRecibe);   //accedo al registro de la cuenta del receptor del dinero
 
             unMovimiento.dni:=cuentaEnvia.dni;
             unMovimiento.cod_ban:=-1;
