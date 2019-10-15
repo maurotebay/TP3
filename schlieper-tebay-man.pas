@@ -715,10 +715,11 @@ begin
                                                     ClrEol();
                                                     Write('  Monto a abonar (pagable): $ ');
                                                     ReadLn(nuevoMovimiento.importe);
-                                                until nuevoMovimiento.importe > unaTarjeta.saldo_x_tarjeta;
+                                                until nuevoMovimiento.importe <= unaTarjeta.saldo_x_tarjeta;
                                                 WriteLn();
                                                 WriteLn('  Se ha registrado la compra con exito!');
                                                 Write('Pulse cualquier tecla para mostrar el comprobante de pago...');
+                                                ReadKey;
                                                 ClrScr;
                                                 WriteLn('   COMPROBANTE DE PAGO');
                                                 WriteLn('  ----------------------');
