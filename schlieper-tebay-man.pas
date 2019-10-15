@@ -4,7 +4,7 @@ program tp3;
 uses Crt, sysutils;
 
 const
-    RUTA_ARCHIVOS = 'C:\ayed\tp3\';
+    RUTA_ARCHIVOS = 'C:\Users\mauro\Desktop\Facultad\Algoritmos\TPs\TP3\';
 
 type
     Usuario = record
@@ -47,6 +47,7 @@ type
 var
     // archivoUsuarios: file of usuario; { es global para poder usar el archivo a traves de distintas funciones }
     usuarioIniciado: integer; { es global para mantener la sesion iniciada y permitir un ingreso por primera vez }
+    archivoMovimientos: file of movimiento;
 
 {Esta opcion listara primero todas las entidades bancarias que ya estan cargadas en el sistema en bancos.dat, y permitira ingresar nuevos bancos. Por cada nuevo ingreso se debera registrar el codigo del banco y el nombre de la entidad.}
 procedure OpcionBancos;
@@ -380,8 +381,78 @@ begin
     begin                                    //si existe el dni en el archivo
         Seek(archivo, usuarioIniciado);
         Read(archivo, unUsuario);
-        if (NOT IngresarContrasena(unUsuario.contrasena)) then     //pide contraseña y corrobora que sea la misma
-            usuarioIniciado := -1;   //si pone la contraseña mal, el inicio de sesion fallara
+        if (NOT IngresarContrasena(unUsuario.contrasena)) then     //pide contraseï¿½a y corrobora que sea la misma
+            usuarioIniciado := -1;   //si pone la contraseï¿½a mal, el inicio de sesion fallara
+    end;
+end;
+
+procedure Envios (var archivoCuentas: file of cuentaVirtual; var archivoMovimientos:file of movimiento; dni:string[8]);
+var
+    monto:real;
+    dniRecibe: string[8];
+    cuentaEnvia, cuentaRecibe: cuentaVirtual;
+    posReceptor, posEmisor: integer;
+    unMovimiento: movimiento;
+begin
+    reset(archivoCuentas);
+    reset(archivoMovimientos);
+    posEmisor:= buscarCuentaPorDni(archivoCuentas, dni);
+    if(posEmisor= -1) then
+    begin
+         writeln('Usted no posee una cuenta asociada, seleccione la opcion 2 en el menu anterior');
+         readKey;
+    end
+    else
+    begin
+        Seek(archivoCuentas, posEmisor);  //pongo el puntero en el usuario que tiene sesion iniciada
+        read(archivoCuentas, cuentaEnvia);   //accedo al registro del usuario ingresado
+        writeln('Ingrese el DNI del usuario al cual quiere enviar dinero:');
+        ReadLn(dniRecibe);
+        posReceptor:=buscarCuentaPorDni(archivoCuentas, dniRecibe);
+        if (posReceptor<>-1) OR (cuentaEnvia.saldo_billetera = 0.0) then
+        begin
+            repeat
+                writeln('El saldo de su billetera virtual es: $', cuentaEnvia.saldo_billetera:1:2);
+                writeln();
+                writeln('Ingrese el monto a enviar:(debe ser menor o igual a su saldo)');
+                readln(monto);
+            until (monto<=cuentaEnvia.saldo_billetera);
+            seek(archivoMovimientos, filesize(archivoMovimientos));  //me posiciono al final del archivo ya que este esta ordenado de forma ascendente, osea la fecha mas reciente ira al final del mismo
+            seek(archivoCuentas, posReceptor);    //me posiciono en el registro del que va a recibir dinero
+            read(archivoCuentas, cuentaRecibe);   //accedo a el registro de la cuenta del receptor del dinero
+
+            unMovimiento.dni:=cuentaEnvia.dni;
+            unMovimiento.cod_ban:=-1;
+            unMovimiento.tipo_tar:='N';
+            unMovimiento.tipo_movi:='E';
+            unMovimiento.importe:=monto;
+            DeCodeDate (Date,unMovimiento.ano,unMovimiento.mes,unMovimiento.dia);
+            unMovimiento.cod_com:=-1;
+            unMovimiento.dni_otro_usuario:= cuentaRecibe.dni;
+            write(archivoMovimientos, unMovimiento);  //guardo el movimiento en el archivo movimientos.dat
+
+            cuentaRecibe.saldo_billetera:=cuentaRecibe.saldo_billetera + monto;  //le agrego el dinero al receptor el dinero que se le envio
+            seek(archivoCuentas, posReceptor);
+            write(archivoCuentas, cuentaRecibe);    //guardo el registro del usuario que recibe dinero con su nuevo saldo
+
+            seek(archivoCuentas, usuarioIniciado);
+            cuentaEnvia.saldo_billetera:=cuentaEnvia.saldo_billetera - monto;   //le resto el dinero que se envio
+            write(archivoCuentas, cuentaEnvia);         //guardo el registro del usuario que envio dinero con su saldo actualizado
+        end
+        else
+        begin
+            if(cuentaEnvia.saldo_billetera = 0.0) then
+            begin
+                WriteLn('No tiene saldo en su cuenta, regresando al menu anterior.');
+                readKey;
+            end
+            else
+            begin
+                WriteLn('El DNI ingresado no corresponde a ningun otro usuario con cuenta virtual. Vuevla a intentarlo');
+                readKey;
+            end;
+        
+        end;
     end;
 end;
 
@@ -399,8 +470,10 @@ var
 begin
     Assign(archivoUsuarios, RUTA_ARCHIVOS + 'usuarios.dat');
     Assign(archivoCuentas, RUTA_ARCHIVOS + 'cuentas-virtuales.dat');
+    assign(archivoMovimientos, RUTA_ARCHIVOS + 'movimientos.dat');
     Reset(archivoUsuarios);
     Reset(archivoCuentas);
+    reset(archivoMovimientos);
     opcion := 0;
     if (usuarioIniciado = -1) then
     begin
@@ -531,7 +604,8 @@ begin
                     ReadKey;
                 end;
                 3: begin
-                    WriteLn('Opcion 3 elegida');
+                    WriteLn('Opcion Envios elegida');
+                    Envios(archivoCuentas, archivoMovimientos, sesionUsuario.dni);
                     opcion := 0;
                     ReadKey;
                 end;
@@ -559,6 +633,7 @@ begin
     end;
     Close(archivoUsuarios);
     Close(archivoCuentas);
+    close(archivoMovimientos);
 end;
 
 procedure Menu;
