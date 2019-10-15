@@ -4,7 +4,7 @@ program tp3;
 uses Crt, sysutils;
 
 const
-    RUTA_ARCHIVOS = 'C:\ayed\tp3\';
+    RUTA_ARCHIVOS = 'C:\Users\mauro\Desktop\Facultad\Algoritmos\TPs\TP3\';
 
 type
     usuario = record
@@ -465,6 +465,7 @@ begin
                 writeln('Ingrese el monto a enviar:(debe ser menor o igual a su saldo)');
                 readln(monto);
             until (monto<=cuentaEnvia.saldo_billetera);
+            
             seek(archivoMovimientos, filesize(archivoMovimientos));  //me posiciono al final del archivo ya que este esta ordenado de forma ascendente, osea la fecha mas reciente ira al final del mismo
             seek(archivoCuentas, posReceptor);    //me posiciono en el registro del que va a recibir dinero
             read(archivoCuentas, cuentaRecibe);   //accedo al registro de la cuenta del receptor del dinero
@@ -479,11 +480,11 @@ begin
             unMovimiento.dni_otro_usuario:= cuentaRecibe.dni;
             write(archivoMovimientos, unMovimiento);  //guardo el movimiento en el archivo movimientos.dat
 
-            cuentaRecibe.saldo_billetera:=cuentaRecibe.saldo_billetera + monto;  //le agrego el dinero al receptor el dinero que se le envio
+            cuentaRecibe.saldo_billetera:= (cuentaRecibe.saldo_billetera) + monto;  //le agrego el dinero al receptor el dinero que se le envio
             seek(archivoCuentas, posReceptor);
             write(archivoCuentas, cuentaRecibe);    //guardo el registro del usuario que recibe dinero con su nuevo saldo
 
-            seek(archivoCuentas, usuarioIniciado);
+            seek(archivoCuentas, posEmisor);
             cuentaEnvia.saldo_billetera:=cuentaEnvia.saldo_billetera - monto;   //le resto el dinero que se envio
             write(archivoCuentas, cuentaEnvia);         //guardo el registro del usuario que envio dinero con su saldo actualizado
         end

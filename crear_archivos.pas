@@ -3,7 +3,7 @@ program crear_archivos;
 uses Crt;
 
 const
-    RUTA_ARCHIVOS = 'C:\ayed\tp3\';
+    RUTA_ARCHIVOS = 'C:\Users\mauro\Desktop\Facultad\Algoritmos\TPs\TP3\';
 
 type
     Usuario = record
