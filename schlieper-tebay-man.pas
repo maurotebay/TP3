@@ -603,7 +603,7 @@ begin
                                         ClrEol();
                                         Write('     Codigo de banco (debe estar registrado): ');
                                         ReadLn(nuevaTarjeta.cod_ban);
-                                    until (nuevaTarjeta.cod_ban <> -1) OR (buscarBancoPorCodigo(nuevaTarjeta.cod_ban) <> -1);
+                                    until (nuevaTarjeta.cod_ban = -1) OR (buscarBancoPorCodigo(nuevaTarjeta.cod_ban) <> -1);
                                 end;
                                 if (nuevaTarjeta.cod_ban <> -1) then
                                 begin
