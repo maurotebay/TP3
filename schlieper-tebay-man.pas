@@ -4,7 +4,7 @@ program tp3;
 uses Crt, sysutils;
 
 const
-    RUTA_ARCHIVOS = 'C:\Users\mauro\Desktop\Facultad\Algoritmos\TPs\TP3\';
+    RUTA_ARCHIVOS = 'C:\ayed\tp3\';
 
 type
     usuario = record
@@ -707,7 +707,7 @@ begin
                                                 end;
                                             if existeTarjeta then
                                             begin
-                                                WriteLn('  Saldo de la tarjeta: $ ', unaTarjeta.saldo_x_tarjeta);
+                                                WriteLn('  Saldo de la tarjeta: $ ', unaTarjeta.saldo_x_tarjeta:1:2);
                                                 WriteLn();
                                                 WriteLn();
                                                 repeat
