@@ -457,9 +457,13 @@ begin
         writeln('Ingrese el DNI del usuario al cual quiere enviar dinero:');
         ReadLn(dniRecibe);
         posReceptor:=buscarCuentaPorDni(dniRecibe);
+        DeCodeDate (Date,unMovimiento.ano,unMovimiento.mes,unMovimiento.dia);
         if (posReceptor<>-1) AND (cuentaEnvia.saldo_billetera <> 0.0) then
         begin
             repeat
+                writeln();
+                writeln('Fecha: ', unMovimiento.dia, '/', unMovimiento.mes, '/',unMovimiento.ano);
+                writeln();
                 writeln('El saldo de su billetera virtual es: $', cuentaEnvia.saldo_billetera:1:2);
                 writeln();
                 writeln('Ingrese el monto a enviar:(debe ser menor o igual a su saldo)');
@@ -475,7 +479,6 @@ begin
             unMovimiento.tipo_tar:='N';
             unMovimiento.tipo_movi:='E';
             unMovimiento.importe:=monto;
-            DeCodeDate (Date,unMovimiento.ano,unMovimiento.mes,unMovimiento.dia);
             unMovimiento.cod_com:=-1;
             unMovimiento.dni_otro_usuario:= cuentaRecibe.dni;
             write(archivoMovimientos, unMovimiento);  //guardo el movimiento en el archivo movimientos.dat
