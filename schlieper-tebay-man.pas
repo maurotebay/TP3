@@ -515,18 +515,19 @@ procedure Compras(sesionUsuario: usuario);
 var
     nuevoMovimiento: movimiento;
     unComercio: comercio;
-    registroCuenta, registroBanco, i: integer;
+    registroCuenta, registroBanco, i, posicionTarjeta: integer;
     sesionCuentaUsuario: cuentaVirtual;
     unBanco: banco;
-    existeTarjeta: boolean;
     unaTarjeta: tarjeta;
 begin
     Reset(archivoComercios);
     nuevoMovimiento.dni := sesionUsuario.dni;
     nuevoMovimiento.tipo_movi := 'C';
-    WriteLn('    COMPRAS EN COMERCIOS');
     WriteLn();
     WriteLn('Registre ahora una nueva compra.');
+    WriteLn();
+    DecodeDate(Date, nuevoMovimiento.ano, nuevoMovimiento.mes, nuevoMovimiento.dia);
+    WriteLn('Fecha: ', nuevoMovimiento.dia, '/', nuevoMovimiento.mes, '/', nuevoMovimiento.ano);
     WriteLn();
     WriteLn('Complete los datos que se le piden (ingrese "-1" para cancelar):');
     WriteLn();
@@ -568,18 +569,16 @@ begin
                             repeat
                                 GotoXY(1, WhereY - 1);
                                 ClrEol();
-                                WriteLn('  Tipo de tarjeta (D / C): ');
+                                Write('  Tipo de tarjeta (D / C): ');
                                 ReadLn(nuevoMovimiento.tipo_tar);
                             until (nuevoMovimiento.tipo_tar = 'D') OR (nuevoMovimiento.tipo_tar = 'C');
-                            existeTarjeta := false;
+                            posicionTarjeta := 0;
                             for i := 1 to 5 do
-                                if (NOT existeTarjeta) AND (sesionCuentaUsuario.cuenta_virtual[i].cod_ban = unBanco.cod_ban) AND (sesionCuentaUsuario.cuenta_virtual[i].tipo_tar = nuevoMovimiento.tipo_tar) then
-                                begin
-                                    unaTarjeta := sesionCuentaUsuario.cuenta_virtual[i];
-                                    existeTarjeta := true;
-                                end; {al terminar el for, i-1 es la posicion de la tarjeta usada.}
-                            if existeTarjeta then
+                                if (posicionTarjeta = 0) AND (sesionCuentaUsuario.cuenta_virtual[i].cod_ban = unBanco.cod_ban) AND (sesionCuentaUsuario.cuenta_virtual[i].tipo_tar = nuevoMovimiento.tipo_tar) then
+                                    posicionTarjeta := i;
+                            if posicionTarjeta <> 0 then
                             begin
+                                unaTarjeta := sesionCuentaUsuario.cuenta_virtual[posicionTarjeta];
                                 WriteLn('  Saldo de la tarjeta: $ ', unaTarjeta.saldo_x_tarjeta:1:2);
                                 WriteLn();
                                 WriteLn();
@@ -590,10 +589,13 @@ begin
                                     ReadLn(nuevoMovimiento.importe);
                                 until nuevoMovimiento.importe <= unaTarjeta.saldo_x_tarjeta;
                                 unaTarjeta.saldo_x_tarjeta := unaTarjeta.saldo_x_tarjeta - nuevoMovimiento.importe; {resto el monto ingresado a la variable unaTarjeta}
-                                sesionCuentaUsuario.cuenta_virtual[i-1] := unaTarjeta;   {guardo el nuevo monto en la variable de tipo CuentaVirtual}
+                                sesionCuentaUsuario.cuenta_virtual[posicionTarjeta] := unaTarjeta;   {guardo el nuevo monto en la variable de tipo CuentaVirtual}
 
                                 Seek(archivoCuentas, registroCuenta);
-                                Write(archivoCuentas, sesionCuentaUsuario); {actualizo el archivo con el nuevo monto}
+                                Write(archivoCuentas, sesionCuentaUsuario); {actualizo el archivo cuentas con el nuevo monto de tarjeta}
+                                
+                                Seek(archivoMovimientos, filesize(archivoMovimientos));  //me posiciono al final del archivo ya que este esta ordenado de forma ascendente, osea la fecha mas reciente ira al final del mismo
+                                Write(archivoMovimientos, nuevoMovimiento);  {actualizo el archivo movimientos con el nuevo registro}
 
                                 WriteLn();
                                 WriteLn('  Se ha registrado la compra con exito!');
@@ -601,7 +603,17 @@ begin
                                 ReadKey;
                                 ClrScr;
                                 WriteLn('   COMPROBANTE DE PAGO');
-                                WriteLn('  ----------------------');
+                                WriteLn('  --------------------------');
+                                WriteLn('   Banco: ', unBanco.nombre);
+                                WriteLn('   Comercio: ', unComercio.nombre);
+                                WriteLn('   Fecha operacion: ', nuevoMovimiento.dia, '/', nuevoMovimiento.mes, '/', nuevoMovimiento.ano);
+                                Write('   Monto a ');
+                                if nuevoMovimiento.tipo_tar = 'D' then
+                                    Write('debitar')
+                                else
+                                    Write('abonar');
+                                WriteLn(': ', nuevoMovimiento.importe:1:2);
+                                WriteLn('  --------------------------');
                             end
                             else
                                 WriteLn('  No existe tarjeta de tipo "' + nuevoMovimiento.tipo_tar + '" para el banco "' + unBanco.nombre + '"!');
@@ -903,8 +915,3 @@ begin
     Write('Presione cualquier tecla para salir del programa');
     ReadKey;
 end.
-
-
-
-
-
