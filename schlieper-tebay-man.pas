@@ -632,61 +632,162 @@ begin
     Write('Presione cualquier tecla para volver al menu de Sistema de Usuario...');
 end;
 
-procedure ListarMovimientos(sesionUsuario: usuario; diaI, mesI, anoI, diaF, mesF, anoF: integer);
+function primerMovEnFecha(var archivoMovimientos: file of movimiento; dateI: TDateTime):integer;
+var
+    unMovimiento: movimiento;
+    fechaMov: TDateTime;
 begin
-    WriteLn('Entre ', diaI, '/', mesI, '/', anoI, ' y ', diaF, '/', mesF, '/', anoF, ':');
+    reset(archivoMovimientos);
+    read(archivoMovimientos, unMovimiento);
+    fechaMov:=EncodeDate(unMovimiento.ano, unMovimiento.mes, unMovimiento.dia);
+    while fechaMov<dateI do
+    begin
+        read(archivoMovimientos, unMovimiento);
+        fechaMov:=EncodeDate(unMovimiento.ano, unMovimiento.mes, unMovimiento.dia);
+    end;
+    if(fechaMov >= dateI) then
+    begin
+       primerMovEnFecha:=filepos(archivoMovimientos); 
+    end
+    else
+    begin
+        primerMovEnFecha:=-1;
+    end;
 end;
 
-procedure Movimientos(sesionUsuario: usuario);
+procedure ListarMovimientos(dni: string[8]; dateI, dateF: TDateTime; var archivoMovimientos: file of movimiento);
 var
-    diaInicio, mesInicio, anoInicio, diaFin, mesFin, anoFin: integer;
+    unMovimiento:movimiento;
+    primerPos:integer;
+    fechaMov: TDateTime;
+begin
+    reset(archivoMovimientos);
+    primerPos:=primerMovEnFecha(archivoMovimientos, dateI);  //busco la posicion del primer movimiento cuya fecha es mayor a la inicial
+
+    if primerPos<>-1 then           //si existe entonces empiezo a mostrar
+    begin
+        WriteLn(format('Entre  %s', [DateToStr(dateI)]), format(' y  %s',[DateToStr(dateF)]), ' los movimientos de la cuenta asociada al DNI ', dni, ' son:');
+        seek(archivoMovimientos, primerPos);
+        read(archivoMovimientos, unMovimiento);
+        fechaMov:=EncodeDate(unMovimiento.ano, unMovimiento.mes, unMovimiento.dia);    //paso a formato fecha la fecha del movimiento
+        while (fechaMov>=dateI) AND (fechaMov<=dateF) AND (not(eof(archivoMovimientos))) do        //mientras que este dentro de las fechas
+        begin
+            if(unMovimiento.dni = dni) then                     //y el movimiento sea del usuario que lo solicita
+            begin
+                writeln();
+                writeln('-----------------------------------------------------------------');
+                writeln(format('Fecha del Movimiento: %s', [DateToStr(fechaMov)]) );
+                if(unMovimiento.tipo_movi='E') then             //muestro distintos campos dependiendo de el tipo de movimiento
+                begin
+                    writeln('Tipo de movimiento: Envio');
+                    writeln('DNI del usuario que recibio dinero: ', unMovimiento.dni_otro_usuario);
+
+                end
+                else
+                begin
+                    writeln('Tipo de movimiento: Compra');
+                    writeln('Codigo de Banco: ', unMovimiento.cod_ban);
+                    writeln('Tipo de Tarjeta: ', unMovimiento.tipo_tar);
+                    writeln('Codigo de Comercio: ', unMovimiento.cod_com);
+                end;
+                writeln('Importe: ', unMovimiento.importe:1:2);
+            end;
+            read(archivoMovimientos, unMovimiento);
+            fechaMov:=EncodeDate(unMovimiento.ano, unMovimiento.mes, unMovimiento.dia);
+        end;
+    end
+    else
+    begin
+        writeln(format('Su cuenta no tiene ningun movimiento registrado entre %s', [DateToStr(dateI)]), format(' y %s',[DateToStr(dateF)]) );
+    end;
+end;
+
+function mes31(mes: word):boolean;
+const
+     tienen31:array [1..7] of word = (1,3,5,7,8,10,12);
+var
+    i: integer;
+begin
+    for i:=1 to 7 do
+    begin
+        if(mes=tienen31[i]) then
+        begin
+        mes31:=True;
+        end;
+    end;
+end;
+
+procedure Movimientos(dni: string[8]; var archivoMovimientos:file of movimiento);
+var
+    diaInicio, mesInicio, anoInicio, diaFin, mesFin, anoFin: word;
+    dateI, dateF: TDateTime;
 begin
     WriteLn();
     WriteLn();
     WriteLn('Consulte los movimientos realizados entre 2 fechas.');
-    WriteLn();
-    WriteLn('Ingrese fecha inicial:');
-    WriteLn();
     repeat
-        GotoXY(1, WhereY - 1);
-        ClrEol();
-        Write('  Dia (1 a 28): ');
-        ReadLn(diaInicio);
-    until (diaInicio >= 1) AND (diaInicio <= 28);
-    WriteLn();
+        WriteLn();
+        WriteLn('Ingrese fecha inicial (no puede ser mayor a la actual):', format('            Hoy es: %s', [DateToStr(Date)]) );
+        WriteLn();
+
+        repeat
+            GotoXY(1, WhereY - 1);
+            ClrEol();
+            Write('  Ano: ');
+            ReadLn(anoInicio);
+        until anoInicio<=10000;
+        repeat
+            GotoXY(1, WhereY - 1);
+            ClrEol();
+            Write('  Mes (1 a 12): ');
+            ReadLn(mesInicio);
+        until (mesInicio >= 1) AND (mesInicio <= 12);
+        repeat
+            GotoXY(1, WhereY - 1);
+            ClrEol();
+            Write('  Dia (1 a 28, 30 o 31): ');
+            ReadLn(diaInicio);
+        until (diaInicio >= 1) AND ( ( (diaInicio <= 28) AND (mesInicio=2) ) OR ( (diaInicio<=30) AND (not(mes31(mesInicio)) ) AND (mesInicio<>2) ) OR ( (diaInicio<=31) AND (mes31(mesInicio)) ) );
+        WriteLn();
+        dateI:=EncodeDate(anoInicio, mesInicio, diaInicio);
+        
+    until (dateI <= Date());
+    
     repeat
-        GotoXY(1, WhereY - 1);
-        ClrEol();
-        Write('  Mes (1 a 12): ');
-        ReadLn(mesInicio);
-    until (mesInicio >= 1) AND (mesInicio <= 12);
-    Write('  Ano: ');
-    ReadLn(anoInicio);
-    WriteLn();
-    WriteLn('Ingrese fecha final:');
-    WriteLn();
-    repeat
-        GotoXY(1, WhereY - 1);
-        ClrEol();
-        Write('  Dia (1 a 28): ');
-        ReadLn(diaFin);
-    until (diaFin >= 1) AND (diaFin <= 28);
-    WriteLn();
-    repeat
-        GotoXY(1, WhereY - 1);
-        ClrEol();
-        Write('  Mes (1 a 12): ');
-        ReadLn(mesFin);
-    until (mesFin >= 1) AND (mesFin <= 12);
-    Write('  Ano: ');
-    ReadLn(anoFin);
-    WriteLn();
+        WriteLn();
+        WriteLn('Ingrese Fecha Final (no puede ser mayor a la actual o que la Inicial):', format('            Hoy es: %s', [DateToStr(Date)]) );
+        WriteLn();
+
+        repeat
+            GotoXY(1, WhereY - 1);
+            ClrEol();
+            Write('  Ano: ');
+            ReadLn(anoFin);
+        until anoFin<=10000;
+        repeat
+            GotoXY(1, WhereY - 1);
+            ClrEol();
+            Write('  Mes (1 a 12): ');
+            ReadLn(mesFin);
+        until (mesFin >= 1) AND (mesFin <= 12);
+        repeat
+            GotoXY(1, WhereY - 1);
+            ClrEol();
+            Write('  Dia (1 a 28, 30 o 31): ');
+            ReadLn(diaFin);
+        until (diaFin >= 1) AND ( ( (diaFin <= 28) AND (mesFin=2) ) OR ( (diaFin<=30) AND (not(mes31(mesFin))) AND (mesFin<>2) ) OR ( (diaFin<=31) AND (mes31(mesFin)) ) );
+        WriteLn();
+        dateF:=EncodeDate(anoFin, mesFin, diaFin);
+        
+    until ((dateF <= Date()) AND (dateF>=dateI) );
+    
     Write('Presione cualquier tecla para mostrar los movimientos en la fecha especificada...');
+    readKey;
     ClrScr;
     WriteLn('    MOVIMIENTOS');
     WriteLn();
     WriteLn();
-    ListarMovimientos(sesionUsuario, diaInicio, mesInicio, anoInicio, diaFin, mesFin, anoFin);
+    ListarMovimientos(dni, dateI, dateF, archivoMovimientos);
 end;
 
 procedure OpcionUsuarios;
@@ -828,6 +929,7 @@ begin
                 3: begin
                     WriteLn('    ENVIOS DE DINERO');
                     Envios(sesionUsuario.dni);
+                    writeln('El envio se ha realizado exitosamente.');
                     opcion := 0;
                     ReadKey;
                 end;
@@ -839,7 +941,7 @@ begin
                 end;
                 5: begin
                     WriteLn('    MOVIMIENTOS');
-                    Movimientos(sesionUsuario);
+                    Movimientos(sesionUsuario.dni, archivoMovimientos);
                     opcion := 0;
                     ReadKey;
                 end;
