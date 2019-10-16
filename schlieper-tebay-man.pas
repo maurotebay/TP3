@@ -524,6 +524,7 @@ begin
     Reset(archivoComercios);
     nuevoMovimiento.dni := sesionUsuario.dni;
     nuevoMovimiento.tipo_movi := 'C';
+    WriteLn('    COMPRAS EN COMERCIOS');
     WriteLn();
     WriteLn('Registre ahora una nueva compra.');
     WriteLn();
@@ -531,30 +532,30 @@ begin
     WriteLn();
     Write('  Codigo del comercio donde compra: ');
     ReadLn(nuevoMovimiento.cod_com);
-    if (nuevoMovimiento.cod_com <> -1) then
+    if (nuevoMovimiento.cod_com <> -1) then {si el codigo ingresado es -1, termina}
     begin
-        if nuevoMovimiento.cod_com < FileSize(archivoComercios) then
+        if nuevoMovimiento.cod_com < FileSize(archivoComercios) then {si el codigo de comercio no existe, termina}
         begin
-            Seek(archivoComercios, nuevoMovimiento.cod_com);
-            Read(archivoComercios, unComercio);
-            if unComercio.estado then
+            Seek(archivoComercios, nuevoMovimiento.cod_com);    {muevo el puntero a la posicion del comercio}
+            Read(archivoComercios, unComercio);     {leo el comercio}
+            if unComercio.estado then   {si el comercio esta disponible, continua}
             begin
                 WriteLn('  Nombre del comercio: ', unComercio.nombre);
                 WriteLn();
-                registroCuenta := buscarCuentaPorDni(sesionUsuario.dni);
+                registroCuenta := buscarCuentaPorDni(sesionUsuario.dni);    {si existe cuenta de usuario devuelve la posicion en el archivo, sino -1}
                 if registroCuenta = -1 then
                     WriteLn('  Este usuario no tiene cuenta! No puede realizar ninguna compra!')
                 else
                 begin
-                    Seek(archivoCuentas, registroCuenta);
-                    Read(archivoCuentas, sesionCuentaUsuario);
+                    Seek(archivoCuentas, registroCuenta); {muevo el puntero a la posicion de la cuenta virtual del usuario}
+                    Read(archivoCuentas, sesionCuentaUsuario); {escribo el contenido del archivo en sesionCuentaUsuario}
                     WriteLn('  Tarjetas disponibles:');
                     if MostrarTarjetasDeCuentaDeUsuario(sesionCuentaUsuario) then
                     begin
                         WriteLn();
                         Write('  Codigo del banco con quien compra: ');
                         ReadLn(nuevoMovimiento.cod_ban);
-                        registroBanco := buscarBancoPorCodigoEnCuenta(nuevoMovimiento.cod_ban, sesionCuentaUsuario);
+                        registroBanco := buscarBancoPorCodigoEnCuenta(nuevoMovimiento.cod_ban, sesionCuentaUsuario); {devuelve -1 si el banco no esta en ninguna tarjeta de la cuenta}
                         if registroBanco = -1 then
                             WriteLn('  Banco no existente en su cuenta! Revise arriba cuales tiene disponibles')
                         else
@@ -576,7 +577,7 @@ begin
                                 begin
                                     unaTarjeta := sesionCuentaUsuario.cuenta_virtual[i];
                                     existeTarjeta := true;
-                                end;
+                                end; {al terminar el for, i-1 es la posicion de la tarjeta usada.}
                             if existeTarjeta then
                             begin
                                 WriteLn('  Saldo de la tarjeta: $ ', unaTarjeta.saldo_x_tarjeta:1:2);
@@ -588,6 +589,12 @@ begin
                                     Write('  Monto a abonar (pagable): $ ');
                                     ReadLn(nuevoMovimiento.importe);
                                 until nuevoMovimiento.importe <= unaTarjeta.saldo_x_tarjeta;
+                                unaTarjeta.saldo_x_tarjeta := unaTarjeta.saldo_x_tarjeta - nuevoMovimiento.importe; {resto el monto ingresado a la variable unaTarjeta}
+                                sesionCuentaUsuario.cuenta_virtual[i-1] := unaTarjeta;   {guardo el nuevo monto en la variable de tipo CuentaVirtual}
+
+                                Seek(archivoCuentas, registroCuenta);
+                                Write(archivoCuentas, sesionCuentaUsuario); {actualizo el archivo con el nuevo monto}
+
                                 WriteLn();
                                 WriteLn('  Se ha registrado la compra con exito!');
                                 Write('Pulse cualquier tecla para mostrar el comprobante de pago...');
@@ -597,7 +604,7 @@ begin
                                 WriteLn('  ----------------------');
                             end
                             else
-                                 WriteLn('  No existe tarjeta de tipo "' + nuevoMovimiento.tipo_tar + '" para el banco "' + unBanco.nombre + '"!');
+                                WriteLn('  No existe tarjeta de tipo "' + nuevoMovimiento.tipo_tar + '" para el banco "' + unBanco.nombre + '"!');
                         end;
                     end;
                 end;
@@ -751,6 +758,7 @@ begin
                             WriteLn();
                             WriteLn('  Puede agregar hasta 5 tarjetas en su nueva cuenta.');
                             WriteLn('  Llene los datos de las tarjetas (finalice con "-1" como Codigo de banco):');
+                            nuevaTarjeta.cod_ban := 0; {inicializo la variable}
                             for i := 1 to 5 do
                             begin
                                 if (nuevaTarjeta.cod_ban = -1) then
