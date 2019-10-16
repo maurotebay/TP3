@@ -408,8 +408,8 @@ begin
     begin                                    //si existe el dni en el archivo
         Seek(archivo, usuarioIniciado);
         Read(archivo, unUsuario);
-        if (NOT IngresarContrasena(unUsuario.contrasena)) then     //pide contrase�a y corrobora que sea la misma
-            usuarioIniciado := -1;   //si pone la contrase�a mal, el inicio de sesion fallara
+        if (NOT IngresarContrasena(unUsuario.contrasena)) then     //pide contrase?a y corrobora que sea la misma
+            usuarioIniciado := -1;   //si pone la contrase?a mal, el inicio de sesion fallara
     end;
 end;
 
@@ -443,8 +443,8 @@ var
     posReceptor, posEmisor: integer;
     unMovimiento: movimiento;
 begin
-    reset(archivoCuentas);
-    reset(archivoMovimientos);
+    Reset(archivoCuentas);
+    Reset(archivoMovimientos);
     posEmisor:= buscarCuentaPorDni(dni);
     if(posEmisor= -1) then
     begin
@@ -457,17 +457,20 @@ begin
         read(archivoCuentas, cuentaEnvia);   //accedo al registro del usuario ingresado
         writeln('Ingrese el DNI del usuario al cual quiere enviar dinero:');
         ReadLn(dniRecibe);
+        WriteLn();
         posReceptor:=buscarCuentaPorDni(dniRecibe);
         DeCodeDate (Date,unMovimiento.ano,unMovimiento.mes,unMovimiento.dia);
-        if (posReceptor<>-1) AND (cuentaEnvia.saldo_billetera <> 0.0) then
+        if (dni <> dniRecibe) AND (posReceptor<>-1) AND (cuentaEnvia.saldo_billetera <> 0.0) then
         begin
+            writeln('Fecha: ', unMovimiento.dia, '/', unMovimiento.mes, '/',unMovimiento.ano);
+            writeln();
+            writeln('El saldo de su billetera virtual es: $ ', cuentaEnvia.saldo_billetera:1:2);
+            writeln();
+            WriteLn();
             repeat
-                writeln();
-                writeln('Fecha: ', unMovimiento.dia, '/', unMovimiento.mes, '/',unMovimiento.ano);
-                writeln();
-                writeln('El saldo de su billetera virtual es: $', cuentaEnvia.saldo_billetera:1:2);
-                writeln();
-                writeln('Ingrese el monto a enviar:(debe ser menor o igual a su saldo)');
+                GotoXY(1, WhereY - 1);
+                ClrEol();
+                write('Ingrese el monto a enviar (menor o igual a su saldo): $ ');
                 readln(monto);
             until (monto<=cuentaEnvia.saldo_billetera);
             
@@ -491,24 +494,20 @@ begin
             seek(archivoCuentas, posEmisor);
             cuentaEnvia.saldo_billetera:=cuentaEnvia.saldo_billetera - monto;   //le resto el dinero que se envio
             write(archivoCuentas, cuentaEnvia);         //guardo el registro del usuario que envio dinero con su saldo actualizado
+
+            WriteLn();
+            WriteLn('El envio de dinero se realizo exitosamente!');
         end
         else
         begin
-            if(cuentaEnvia.saldo_billetera = 0.0) then
-            begin
-                WriteLn('No tiene saldo en su cuenta, regresando al menu anterior.');
-                readKey;
-            end
+            if dni = dniRecibe then
+                Write('No puede enviarse dinero a si mismo!')
+            else if cuentaEnvia.saldo_billetera = 0.0 then
+                Write('No tiene saldo en su cuenta, regresando al menu anterior.')
             else
-            begin
-                WriteLn('El DNI ingresado no corresponde a ningun otro usuario con cuenta virtual. Vuevla a intentarlo');
-                readKey;
-            end;
-        
+                Write('El DNI ingresado no corresponde a ningun otro usuario con cuenta virtual. Vuevla a intentarlo');
         end;
     end;
-    Close(archivoCuentas);
-    Close(archivoMovimientos);
 end;
 
 procedure Compras(sesionUsuario: usuario);
@@ -616,7 +615,7 @@ begin
                                 WriteLn('  --------------------------');
                             end
                             else
-                                WriteLn('  No existe tarjeta de tipo "' + nuevoMovimiento.tipo_tar + '" para el banco "' + unBanco.nombre + '"!');
+                                WriteLn('  No tienes una tarjeta de tipo "' + nuevoMovimiento.tipo_tar + '" con el banco "' + unBanco.nombre + '"!');
                         end;
                     end;
                 end;
