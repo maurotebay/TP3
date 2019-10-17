@@ -657,7 +657,7 @@ end;
 procedure ListarMovimientos(dni: string[8]; dateI, dateF: TDateTime);
 var
     unMovimiento:movimiento;
-primerPos:integer;
+    primerPos:integer;
     fechaMov: TDateTime;
 begin
     reset(archivoMovimientos);
@@ -776,7 +776,6 @@ begin
         until (diaFin >= 1) AND ( ( (diaFin <= 28) AND (mesFin=2) ) OR ( (diaFin<=30) AND (not(mes31(mesFin))) AND (mesFin<>2) ) OR ( (diaFin<=31) AND (mes31(mesFin)) ) );
         WriteLn();
         dateF:=EncodeDate(anoFin, mesFin, diaFin);
-
     until ((dateF <= Date()) AND (dateF>=dateI) );
 
     Write('Presione cualquier tecla para mostrar los movimientos en la fecha especificada...');
@@ -786,6 +785,7 @@ begin
     WriteLn();
     WriteLn();
     ListarMovimientos(dni, dateI, dateF);
+
 end;
 
 procedure OpcionUsuarios;
@@ -927,6 +927,7 @@ begin
                 3: begin
                     WriteLn('    ENVIOS DE DINERO');
                     Envios(sesionUsuario.dni);
+                    writeln('El envio se ha realizado exitosamente.');
                     opcion := 0;
                     ReadKey;
                 end;
@@ -939,6 +940,7 @@ begin
                 5: begin
                     WriteLn('    MOVIMIENTOS');
                     Movimientos(sesionUsuario.dni);
+
                     opcion := 0;
                     ReadKey;
                 end;
