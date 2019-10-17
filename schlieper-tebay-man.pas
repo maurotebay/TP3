@@ -697,7 +697,7 @@ begin
                 hayMovimiento := True;
             end;
 
-        until (fechaMov<=dateI) OR (fechaMov>=dateF) OR (eof(archivoMovimientos));   //hasta que este fuera de las fechas o termine el archivo
+        until (fechaMov<dateI) OR (fechaMov>dateF) OR (eof(archivoMovimientos));   //hasta que este fuera de las fechas o termine el archivo
         if not(hayMovimiento) then 
             writeln(format('Su cuenta no tiene ningun movimiento registrado entre %s', [DateToStr(dateI)]), format(' y %s',[DateToStr(dateF)]) );
     end
