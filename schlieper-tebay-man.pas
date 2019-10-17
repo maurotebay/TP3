@@ -244,58 +244,58 @@ end;
 
 procedure Borrar(var cadena: string);
 begin
-  if (Length(cadena) > 0) then            (* verifica que haya al menos un caracter para borrar *)
-  begin
-    Delete(cadena, Length(cadena), 1);    (* actualiza cadena borrando un caracter en su ultima posicion *)
-    GotoXY(WhereX - 1, WhereY);           (* mueve el cursor una posicion a la izq *)
-    Write(' ');                           (* escribe un espacio en blanco para invisibilizar el lugar *)
-    GotoXY(WhereX - 1, WhereY);           (* vuelve a mover el cursor una posicion a la izq *)
-  end;
+    if (Length(cadena) > 0) then            (* verifica que haya al menos un caracter para borrar *)
+    begin
+        Delete(cadena, Length(cadena), 1);    (* actualiza cadena borrando un caracter en su ultima posicion *)
+        GotoXY(WhereX - 1, WhereY);           (* mueve el cursor una posicion a la izq *)
+        Write(' ');                           (* escribe un espacio en blanco para invisibilizar el lugar *)
+        GotoXY(WhereX - 1, WhereY);           (* vuelve a mover el cursor una posicion a la izq *)
+    end;
 end;
 
 function IngresarContrasena(claveReal: integer): boolean;
 var
-  intentos: integer;
-  caracter: char;
-  clave: string;
-  claveInt: integer;
+    intentos: integer;
+    caracter: char;
+    clave: string;
+    claveInt: integer;
 begin
-  intentos := 3;
-  Write('Contrasena (numerica, hasta 9 digitos): ');
-  repeat
+    intentos := 3;
+    Write('Contrasena (numerica, hasta 9 digitos): ');
+    repeat
     if intentos < 3 then
     begin
-      GotoXY(1, WhereY - 1);
-      ClrEol();
-      Write('Contrasena incorrecta (', intentos, ' intentos restantes): ');
+        GotoXY(1, WhereY - 1);
+        ClrEol();
+        Write('Contrasena incorrecta (', intentos, ' intentos restantes): ');
     end;
     clave := '';
     repeat
-      caracter := ReadKey;
-      while (KeyPressed) do ReadKey;              (* si queda algo en buffer, se captura por si es un caracter de control *)
-      if (Ord(caracter) = 8) then Borrar(clave);  (* borra si la tecla ingresada es BS (backspace) *)
-      if (Ord(caracter) >= 32) then               (* igualmente verifica que el caracter ingresado no sea de control *)
-      begin
-        clave := clave + caracter;
-        Write('*');
-      end;
+        caracter := ReadKey;
+        while (KeyPressed) do ReadKey;              (* si queda algo en buffer, se captura por si es un caracter de control *)
+        if (Ord(caracter) = 8) then Borrar(clave);  (* borra si la tecla ingresada es BS (backspace) *)
+        if (Ord(caracter) >= 32) then               (* igualmente verifica que el caracter ingresado no sea de control *)
+        begin
+            clave := clave + caracter;
+            Write('*');
+        end;
     until ((clave[1] <> '-') AND (Length(clave) >= 9)) OR (Length(clave) >= 10) OR (Ord(caracter) = 10) OR (Ord(caracter) = 13);
     (* #10 es LF y #13 es CR en ASCII (tecla Enter en Windows equivale a CR LF) *)
     WriteLn();
-    intentos := intentos - 1;
-    claveInt := StrToIntDef(clave, 0);    (* convierte la clave ingresada a integer, y si no respeta formato de numero vale 0 *)
-  until (claveInt = claveReal) OR (intentos < 1);
-  WriteLn();
-  if claveInt = claveReal then
-  begin
-    IngresarContrasena := True;
-    WriteLn('La contrasena es correcta.');
-  end
-  else
-  begin
-    IngresarContrasena := False;
-    WriteLn('La contrasena es incorrecta. Ya no quedan mas intentos.');
-  end;
+        intentos := intentos - 1;
+        claveInt := StrToIntDef(clave, 0);    (* convierte la clave ingresada a integer, y si no respeta formato de numero vale 0 *)
+    until (claveInt = claveReal) OR (intentos < 1);
+    WriteLn();
+    if claveInt = claveReal then
+    begin
+        IngresarContrasena := True;
+        WriteLn('La contrasena es correcta.');
+    end
+    else
+    begin
+        IngresarContrasena := False;
+        WriteLn('La contrasena es incorrecta. Ya no quedan mas intentos.');
+    end;
 end;
 
 procedure altaUsuario(var archivo: file of Usuario; dni: string[8]);
@@ -337,11 +337,11 @@ begin
     Read(archivoBancos, unBanco);
     while (unBanco.cod_ban <> codigo) AND (NOT (Eof(archivoBancos))) do  //mientras el codigo que busco sea distinto del que esta en el archivo
         Read(archivoBancos, unBanco);                                    // y no sea el final del mismo, sigo buscando
-    buscarBancoPorCodigoEnCuenta := -1;                   //si no existe devuelvo -1 para luego darla de alta
+    buscarBancoPorCodigoEnCuenta := -1;                   //si no existe devuelvo -1 por defecto
     if unBanco.cod_ban = codigo then
         for i := 1 to 5 do           // filtro por cuenta
             if (codigo = cuenta.cuenta_virtual[i].cod_ban) then
-                buscarBancoPorCodigoEnCuenta := FilePos(archivoBancos) - 1   //si el banco existe devuelvo la posicion en el archivo
+                buscarBancoPorCodigoEnCuenta := FilePos(archivoBancos) - 1;   //si el banco existe devuelvo la posicion en el archivo
 end;
 
 function buscarCuentaPorDni(dni: string): integer;
@@ -408,8 +408,8 @@ begin
     begin                                    //si existe el dni en el archivo
         Seek(archivo, usuarioIniciado);
         Read(archivo, unUsuario);
-        if (NOT IngresarContrasena(unUsuario.contrasena)) then     //pide contrase�a y corrobora que sea la misma
-            usuarioIniciado := -1;   //si pone la contrase�a mal, el inicio de sesion fallara
+        if (NOT IngresarContrasena(unUsuario.contrasena)) then     //pide contrase?a y corrobora que sea la misma
+            usuarioIniciado := -1;   //si pone la contrase?a mal, el inicio de sesion fallara
     end;
 end;
 
@@ -419,15 +419,15 @@ var
 begin
     cantidadTarjetas := 0;
     for i := 1 to 5 do
-    if cuenta.cuenta_virtual[i].cod_ban <> -1 then
-    begin
-        cantidadTarjetas += 1;
-        WriteLn('  -----------------------');
-        WriteLn('  TARJETA Nro. ', i);
-        WriteLn('    Codigo de banco: ', cuenta.cuenta_virtual[i].cod_ban);
-        WriteLn('    Tipo de tarjeta: ', cuenta.cuenta_virtual[i].tipo_tar);
-        WriteLn('    Saldo: $ ', cuenta.cuenta_virtual[i].saldo_x_tarjeta:12:2);
-    end;
+        if buscarBancoPorCodigo(cuenta.cuenta_virtual[i].cod_ban) <> -1 then
+        begin
+            cantidadTarjetas += 1;
+            WriteLn('  -----------------------');
+            WriteLn('  TARJETA Nro. ', i);
+            WriteLn('    Codigo de banco: ', cuenta.cuenta_virtual[i].cod_ban);
+            WriteLn('    Tipo de tarjeta: ', cuenta.cuenta_virtual[i].tipo_tar);
+            WriteLn('    Saldo: $ ', cuenta.cuenta_virtual[i].saldo_x_tarjeta:12:2);
+        end;
     MostrarTarjetasDeCuentaDeUsuario := cantidadTarjetas > 0;
     if MostrarTarjetasDeCuentaDeUsuario then
         WriteLn('  -----------------------')
@@ -443,8 +443,8 @@ var
     posReceptor, posEmisor: integer;
     unMovimiento: movimiento;
 begin
-    reset(archivoCuentas);
-    reset(archivoMovimientos);
+    Reset(archivoCuentas);
+    Reset(archivoMovimientos);
     posEmisor:= buscarCuentaPorDni(dni);
     if(posEmisor= -1) then
     begin
@@ -457,17 +457,20 @@ begin
         read(archivoCuentas, cuentaEnvia);   //accedo al registro del usuario ingresado
         writeln('Ingrese el DNI del usuario al cual quiere enviar dinero:');
         ReadLn(dniRecibe);
+        WriteLn();
         posReceptor:=buscarCuentaPorDni(dniRecibe);
         DeCodeDate (Date,unMovimiento.ano,unMovimiento.mes,unMovimiento.dia);
-        if (posReceptor<>-1) AND (cuentaEnvia.saldo_billetera <> 0.0) then
+        if (dni <> dniRecibe) AND (posReceptor<>-1) AND (cuentaEnvia.saldo_billetera <> 0.0) then
         begin
+            writeln('Fecha: ', unMovimiento.dia, '/', unMovimiento.mes, '/',unMovimiento.ano);
+            writeln();
+            writeln('El saldo de su billetera virtual es: $ ', cuentaEnvia.saldo_billetera:1:2);
+            writeln();
+            WriteLn();
             repeat
-                writeln();
-                writeln('Fecha: ', unMovimiento.dia, '/', unMovimiento.mes, '/',unMovimiento.ano);
-                writeln();
-                writeln('El saldo de su billetera virtual es: $', cuentaEnvia.saldo_billetera:1:2);
-                writeln();
-                writeln('Ingrese el monto a enviar:(debe ser menor o igual a su saldo)');
+                GotoXY(1, WhereY - 1);
+                ClrEol();
+                write('Ingrese el monto a enviar (menor o igual a su saldo): $ ');
                 readln(monto);
             until (monto<=cuentaEnvia.saldo_billetera);
             
@@ -491,24 +494,20 @@ begin
             seek(archivoCuentas, posEmisor);
             cuentaEnvia.saldo_billetera:=cuentaEnvia.saldo_billetera - monto;   //le resto el dinero que se envio
             write(archivoCuentas, cuentaEnvia);         //guardo el registro del usuario que envio dinero con su saldo actualizado
+
+            WriteLn();
+            WriteLn('El envio de dinero se realizo exitosamente!');
         end
         else
         begin
-            if(cuentaEnvia.saldo_billetera = 0.0) then
-            begin
-                WriteLn('No tiene saldo en su cuenta, regresando al menu anterior.');
-                readKey;
-            end
+            if dni = dniRecibe then
+                Write('No puede enviarse dinero a si mismo!')
+            else if cuentaEnvia.saldo_billetera = 0.0 then
+                Write('No tiene saldo en su cuenta, regresando al menu anterior.')
             else
-            begin
-                WriteLn('El DNI ingresado no corresponde a ningun otro usuario con cuenta virtual. Vuevla a intentarlo');
-                readKey;
-            end;
-        
+                Write('El DNI ingresado no corresponde a ningun otro usuario con cuenta virtual. Vuevla a intentarlo');
         end;
     end;
-    Close(archivoCuentas);
-    Close(archivoMovimientos);
 end;
 
 procedure Compras(sesionUsuario: usuario);
@@ -616,7 +615,7 @@ begin
                                 WriteLn('  --------------------------');
                             end
                             else
-                                WriteLn('  No existe tarjeta de tipo "' + nuevoMovimiento.tipo_tar + '" para el banco "' + unBanco.nombre + '"!');
+                                WriteLn('  No tienes una tarjeta de tipo "' + nuevoMovimiento.tipo_tar + '" con el banco "' + unBanco.nombre + '"!');
                         end;
                     end;
                 end;
@@ -655,7 +654,7 @@ begin
     end;
 end;
 
-procedure ListarMovimientos(dni: string[8]; dateI, dateF: TDateTime; var archivoMovimientos: file of movimiento);
+procedure ListarMovimientos(dni: string[8]; dateI, dateF: TDateTime);
 var
     unMovimiento:movimiento;
     primerPos:integer;
@@ -717,7 +716,7 @@ begin
     end;
 end;
 
-procedure Movimientos(dni: string[8]; var archivoMovimientos:file of movimiento);
+procedure Movimientos(dni: string[8]);
 var
     diaInicio, mesInicio, anoInicio, diaFin, mesFin, anoFin: word;
     dateI, dateF: TDateTime;
@@ -750,9 +749,8 @@ begin
         until (diaInicio >= 1) AND ( ( (diaInicio <= 28) AND (mesInicio=2) ) OR ( (diaInicio<=30) AND (not(mes31(mesInicio)) ) AND (mesInicio<>2) ) OR ( (diaInicio<=31) AND (mes31(mesInicio)) ) );
         WriteLn();
         dateI:=EncodeDate(anoInicio, mesInicio, diaInicio);
-        
     until (dateI <= Date());
-    
+
     repeat
         WriteLn();
         WriteLn('Ingrese Fecha Final (no puede ser mayor a la actual o que la Inicial):', format('            Hoy es: %s', [DateToStr(Date)]) );
@@ -778,16 +776,16 @@ begin
         until (diaFin >= 1) AND ( ( (diaFin <= 28) AND (mesFin=2) ) OR ( (diaFin<=30) AND (not(mes31(mesFin))) AND (mesFin<>2) ) OR ( (diaFin<=31) AND (mes31(mesFin)) ) );
         WriteLn();
         dateF:=EncodeDate(anoFin, mesFin, diaFin);
-        
     until ((dateF <= Date()) AND (dateF>=dateI) );
-    
+
     Write('Presione cualquier tecla para mostrar los movimientos en la fecha especificada...');
     readKey;
     ClrScr;
     WriteLn('    MOVIMIENTOS');
     WriteLn();
     WriteLn();
-    ListarMovimientos(dni, dateI, dateF, archivoMovimientos);
+    ListarMovimientos(dni, dateI, dateF);
+
 end;
 
 procedure OpcionUsuarios;
@@ -941,7 +939,8 @@ begin
                 end;
                 5: begin
                     WriteLn('    MOVIMIENTOS');
-                    Movimientos(sesionUsuario.dni, archivoMovimientos);
+                    Movimientos(sesionUsuario.dni);
+
                     opcion := 0;
                     ReadKey;
                 end;
