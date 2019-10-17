@@ -639,14 +639,14 @@ begin
     reset(archivoMovimientos);
     read(archivoMovimientos, unMovimiento);
     fechaMov:=EncodeDate(unMovimiento.ano, unMovimiento.mes, unMovimiento.dia);
-    while fechaMov<dateI do
+    while (fechaMov<dateI) AND (not(eof(archivoMovimientos))) do    //mientras que el archivo no este vacio y sea menor a DateI
     begin
         read(archivoMovimientos, unMovimiento);
         fechaMov:=EncodeDate(unMovimiento.ano, unMovimiento.mes, unMovimiento.dia);
     end;
     if(fechaMov >= dateI) then
     begin
-       primerMovEnFecha:=filepos(archivoMovimientos); 
+       primerMovEnFecha:= (filepos(archivoMovimientos) -1); //devuelve la posicion en la que se encuentra la primer fecha
     end
     else
     begin
@@ -659,19 +659,35 @@ var
     unMovimiento:movimiento;
     primerPos:integer;
     fechaMov: TDateTime;
+    hayMovimiento: Boolean;
 begin
     reset(archivoMovimientos);
     primerPos:=primerMovEnFecha(archivoMovimientos, dateI);  //busco la posicion del primer movimiento cuya fecha es mayor a la inicial
 
     if primerPos<>-1 then           //si existe entonces empiezo a mostrar
     begin
+        WriteLn('Hay movimientos entre las fechas');
+        readkey;
+
         WriteLn(format('Entre  %s', [DateToStr(dateI)]), format(' y  %s',[DateToStr(dateF)]), ' los movimientos de la cuenta asociada al DNI ', dni, ' son:');
-        seek(archivoMovimientos, primerPos);
-        read(archivoMovimientos, unMovimiento);
-        fechaMov:=EncodeDate(unMovimiento.ano, unMovimiento.mes, unMovimiento.dia);    //paso a formato fecha la fecha del movimiento
-        while (fechaMov>=dateI) AND (fechaMov<=dateF) AND (not(eof(archivoMovimientos))) do        //mientras que este dentro de las fechas
-        begin
-            if(unMovimiento.dni = dni) then                     //y el movimiento sea del usuario que lo solicita
+        seek(archivoMovimientos, primerPos);    //posicion del primer movimiento cuya fecha es mayor a la inicial
+
+        WriteLn('hace el seek a primerPos');
+        readkey;
+
+        hayMovimiento := False; //si se mantiene false es porque no hubo movimientos del usuario
+        repeat
+            read(archivoMovimientos, unMovimiento);
+
+            WriteLn('hace un read');
+            readkey;
+
+            fechaMov:=EncodeDate(unMovimiento.ano, unMovimiento.mes, unMovimiento.dia);    //paso a formato fecha la fecha del movimiento
+
+            WriteLn('copia la fecha');
+            readkey;
+
+            if(unMovimiento.dni = dni) then                     //si el movimiento es del usuario que lo solicita
             begin
                 writeln();
                 writeln('-----------------------------------------------------------------');
@@ -690,14 +706,16 @@ begin
                     writeln('Codigo de Comercio: ', unMovimiento.cod_com);
                 end;
                 writeln('Importe: ', unMovimiento.importe:1:2);
+                hayMovimiento := True;
             end;
-            read(archivoMovimientos, unMovimiento);
-            fechaMov:=EncodeDate(unMovimiento.ano, unMovimiento.mes, unMovimiento.dia);
-        end;
+
+        until (fechaMov<=dateI) OR (fechaMov>=dateF) OR (eof(archivoMovimientos));   //hasta que este fuera de las fechas o termine el archivo
+        if not(hayMovimiento) then 
+            writeln(format('Su cuenta no tiene ningun movimiento registrado entre %s', [DateToStr(dateI)]), format(' y %s',[DateToStr(dateF)]) );
     end
     else
     begin
-        writeln(format('Su cuenta no tiene ningun movimiento registrado entre %s', [DateToStr(dateI)]), format(' y %s',[DateToStr(dateF)]) );
+        writeln(format('No hay ningun movimiento registrado entre %s', [DateToStr(dateI)]), format(' y %s',[DateToStr(dateF)]), ' en el sistema.' );
     end;
 end;
 
@@ -927,7 +945,6 @@ begin
                 3: begin
                     WriteLn('    ENVIOS DE DINERO');
                     Envios(sesionUsuario.dni);
-                    writeln('El envio se ha realizado exitosamente.');
                     opcion := 0;
                     ReadKey;
                 end;
