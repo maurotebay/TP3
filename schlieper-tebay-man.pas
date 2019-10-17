@@ -666,26 +666,14 @@ begin
 
     if primerPos<>-1 then           //si existe entonces empiezo a mostrar
     begin
-        WriteLn('Hay movimientos entre las fechas');
-        readkey;
 
         WriteLn(format('Entre  %s', [DateToStr(dateI)]), format(' y  %s',[DateToStr(dateF)]), ' los movimientos de la cuenta asociada al DNI ', dni, ' son:');
         seek(archivoMovimientos, primerPos);    //posicion del primer movimiento cuya fecha es mayor a la inicial
 
-        WriteLn('hace el seek a primerPos');
-        readkey;
-
         hayMovimiento := False; //si se mantiene false es porque no hubo movimientos del usuario
         repeat
             read(archivoMovimientos, unMovimiento);
-
-            WriteLn('hace un read');
-            readkey;
-
             fechaMov:=EncodeDate(unMovimiento.ano, unMovimiento.mes, unMovimiento.dia);    //paso a formato fecha la fecha del movimiento
-
-            WriteLn('copia la fecha');
-            readkey;
 
             if(unMovimiento.dni = dni) then                     //si el movimiento es del usuario que lo solicita
             begin
