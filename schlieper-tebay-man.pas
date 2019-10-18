@@ -718,7 +718,7 @@ begin
     Write('Presione cualquier tecla para volver al menu de Sistema de Usuario...');
 end;
 
-function primerMovEnFecha(dateI: TDateTime):integer;
+function primerMovEnRangoFecha(dateI, dateF: TDateTime):integer;
 var
     unMovimiento: movimiento;
     fechaMov: TDateTime;
@@ -731,14 +731,10 @@ begin
         read(archivoMovimientos, unMovimiento);
         fechaMov:=EncodeDate(unMovimiento.ano, unMovimiento.mes, unMovimiento.dia);
     end;
-    if(fechaMov >= dateI) then
-    begin
-       primerMovEnFecha:= (filepos(archivoMovimientos) -1); //devuelve la posicion en la que se encuentra la primer fecha
-    end
+    if (fechaMov >= dateI) AND (fechaMov <= dateF) then
+        primerMovEnRangoFecha:= (filepos(archivoMovimientos) -1) //devuelve la posicion en la que se encuentra la primer fecha
     else
-    begin
-        primerMovEnFecha:=-1;
-    end;
+        primerMovEnRangoFecha:=-1;
 end;
 
 procedure ListarMovimientos(dni: string[8]; dateI, dateF: TDateTime);
@@ -749,11 +745,10 @@ var
     hayMovimiento: Boolean;
 begin
     reset(archivoMovimientos);
-    primerPos:=primerMovEnFecha(dateI);  //busco la posicion del primer movimiento cuya fecha es mayor a la inicial
+    primerPos:=primerMovEnRangoFecha(dateI, dateF);  //busco la posicion del primer movimiento cuya fecha es mayor a la inicial
 
     if primerPos<>-1 then           //si existe entonces empiezo a mostrar
     begin
-
         Write(format('Entre %s', [DateToStr(dateI)]), format(' y %s',[DateToStr(dateF)]), ' los movimientos del usuario DNI ');
         TextBackground(Blue);
         TextColor(White);
@@ -776,7 +771,6 @@ begin
                 begin
                     writeln('Tipo de movimiento: Envio');
                     writeln('DNI del usuario que recibio dinero: ', unMovimiento.dni_otro_usuario);
-
                 end
                 else
                 begin
@@ -791,10 +785,22 @@ begin
 
         until (fechaMov<dateI) OR (fechaMov>dateF) OR (eof(archivoMovimientos));   //hasta que este fuera de las fechas o termine el archivo
         if not(hayMovimiento) then 
-            writeln(format('Su cuenta no tiene ningun movimiento registrado entre %s', [DateToStr(dateI)]), format(' y %s',[DateToStr(dateF)]) );
+            writeln(format('Su cuenta no tiene ningun movimiento registrado entre %s', [DateToStr(dateI)]), format(' y %s',[DateToStr(dateF)]) )
+        else
+            writeln('-----------------------------------------------------------------');
     end
     else
-        writeln(format('No hay ningun movimiento registrado entre %s', [DateToStr(dateI)]), format(' y %s',[DateToStr(dateF)]), ' del usuario DNI ', dni, '.');
+    begin
+        Write(format('No hay ningun movimiento registrado entre %s', [DateToStr(dateI)]), format(' y %s',[DateToStr(dateF)]), ' del usuario DNI ');
+        TextBackground(Blue);
+        TextColor(White);
+        Write(dni);
+        NormVideo;
+        WriteLn('.');
+    end;
+    WriteLn();
+    WriteLn();
+    Write('Presione cualquier tecla para volver al menu de Sistema de Usuario...');
 end;
 
 function diasMes(mes: word): integer;
