@@ -102,6 +102,7 @@ end;
 
 procedure CuentasVirtuales;
 var
+    i: integer;
     newCuenta: cuentaVirtual;
 begin
     assign(archivoCuentas, RUTA_ARCHIVOS + 'cuentas-virtuales.dat');
@@ -113,6 +114,9 @@ begin
     newCuenta.cuenta_virtual[1].cod_ban:=12345678;
     newCuenta.cuenta_virtual[1].tipo_tar:='C';
     newCuenta.cuenta_virtual[1].saldo_x_tarjeta:=20.0;
+
+    for i := 2 to High(newCuenta.cuenta_virtual) do
+        newCuenta.cuenta_virtual[i].cod_ban := -1;
 
     write(archivoCuentas, newCuenta);
 
@@ -126,6 +130,9 @@ begin
     newCuenta.cuenta_virtual[2].cod_ban:=87654321;
     newCuenta.cuenta_virtual[2].tipo_tar:='C';
     newCuenta.cuenta_virtual[2].saldo_x_tarjeta:=5565.29;
+
+    for i := 3 to High(newCuenta.cuenta_virtual) do
+        newCuenta.cuenta_virtual[i].cod_ban := -1;
 
     write(archivoCuentas, newCuenta);
 

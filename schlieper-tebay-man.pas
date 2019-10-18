@@ -339,7 +339,7 @@ begin
         Read(archivoBancos, unBanco);                                    // y no sea el final del mismo, sigo buscando
     buscarBancoPorCodigoEnCuenta := -1;                   //si no existe devuelvo -1 por defecto
     if unBanco.cod_ban = codigo then
-        for i := 1 to 5 do           // filtro por cuenta
+        for i := 1 to High(cuenta.cuenta_virtual) do           // filtro por cuenta
             if (codigo = cuenta.cuenta_virtual[i].cod_ban) then
                 buscarBancoPorCodigoEnCuenta := FilePos(archivoBancos) - 1;   //si el banco existe devuelvo la posicion en el archivo
 end;
@@ -418,7 +418,7 @@ var
     cantidadTarjetas, i: integer;
 begin
     cantidadTarjetas := 0;
-    for i := 1 to 5 do
+    for i := 1 to High(cuenta.cuenta_virtual) do
         if buscarBancoPorCodigo(cuenta.cuenta_virtual[i].cod_ban) <> -1 then
         begin
             cantidadTarjetas += 1;
@@ -572,7 +572,7 @@ begin
                                 ReadLn(nuevoMovimiento.tipo_tar);
                             until (nuevoMovimiento.tipo_tar = 'D') OR (nuevoMovimiento.tipo_tar = 'C');
                             posicionTarjeta := 0;
-                            for i := 1 to 5 do
+                            for i := 1 to High(sesionCuentaUsuario.cuenta_virtual) do
                                 if (posicionTarjeta = 0) AND (sesionCuentaUsuario.cuenta_virtual[i].cod_ban = unBanco.cod_ban) AND (sesionCuentaUsuario.cuenta_virtual[i].tipo_tar = nuevoMovimiento.tipo_tar) then
                                     posicionTarjeta := i;
                             if posicionTarjeta <> 0 then
@@ -873,47 +873,52 @@ begin
                             Write('  Saldo de billetera (efectivo): $ ');
                             ReadLn(nuevaCuenta.saldo_billetera);
                             WriteLn();
-                            WriteLn('  Puede agregar hasta 5 tarjetas en su nueva cuenta.');
-                            WriteLn('  Llene los datos de las tarjetas (finalice con "-1" como Codigo de banco):');
-                            nuevaTarjeta.cod_ban := 0; {inicializo la variable}
-                            for i := 1 to 5 do
+                            if High(nuevaCuenta.cuenta_virtual) < 1 then
+                                WriteLn('  No puede agregar tarjetas en este momento.')
+                            else
                             begin
-                                if (nuevaTarjeta.cod_ban = -1) then
+                                WriteLn('  Puede agregar hasta ', High(nuevaCuenta.cuenta_virtual), ' tarjetas en su nueva cuenta.');
+                                WriteLn('  Llene los datos de las tarjetas (finalice con "-1" como Codigo de banco):');
+                                nuevaTarjeta.cod_ban := 0; {inicializo la variable}
+                                for i := 1 to High(nuevaCuenta.cuenta_virtual) do
                                 begin
-                                    nuevaTarjeta.tipo_tar := '-';
-                                    nuevaTarjeta.saldo_x_tarjeta := 0;
-                                end
-                                else
-                                begin
-                                    WriteLn('   -----------------------');
-                                    WriteLn('   TARJETA Nro. ', i);
-                                    WriteLn();
-                                    repeat
-                                        GotoXY(1, WhereY - 1);
-                                        ClrEol();
-                                        Write('     Codigo de banco (debe estar registrado): ');
-                                        ReadLn(nuevaTarjeta.cod_ban);
-                                    until (nuevaTarjeta.cod_ban = -1) OR (buscarBancoPorCodigo(nuevaTarjeta.cod_ban) <> -1);
+                                    if (nuevaTarjeta.cod_ban = -1) then
+                                    begin
+                                        nuevaTarjeta.tipo_tar := '-';
+                                        nuevaTarjeta.saldo_x_tarjeta := 0;
+                                    end
+                                    else
+                                    begin
+                                        WriteLn('   -----------------------');
+                                        WriteLn('   TARJETA Nro. ', i);
+                                        WriteLn();
+                                        repeat
+                                            GotoXY(1, WhereY - 1);
+                                            ClrEol();
+                                            Write('     Codigo de banco (debe estar registrado): ');
+                                            ReadLn(nuevaTarjeta.cod_ban);
+                                        until (nuevaTarjeta.cod_ban = -1) OR (buscarBancoPorCodigo(nuevaTarjeta.cod_ban) <> -1);
+                                    end;
+                                    if (nuevaTarjeta.cod_ban <> -1) then
+                                    begin
+                                        WriteLn();
+                                        repeat
+                                            GotoXY(1, WhereY - 1);
+                                            ClrEol();
+                                            Write('     Debito o Credito? (D / C): ');
+                                            ReadLn(nuevaTarjeta.tipo_tar);
+                                        until (nuevaTarjeta.tipo_tar = 'D') OR (nuevaTarjeta.tipo_tar = 'C');
+                                        Write('     Saldo de tarjeta: $ ');
+                                        ReadLn(nuevaTarjeta.saldo_x_tarjeta);
+                                    end;
+                                    nuevaCuenta.cuenta_virtual[i] := nuevaTarjeta;
                                 end;
-                                if (nuevaTarjeta.cod_ban <> -1) then
-                                begin
-                                    WriteLn();
-                                    repeat
-                                        GotoXY(1, WhereY - 1);
-                                        ClrEol();
-                                        Write('     Debito o Credito? (D / C): ');
-                                        ReadLn(nuevaTarjeta.tipo_tar);
-                                    until (nuevaTarjeta.tipo_tar = 'D') OR (nuevaTarjeta.tipo_tar = 'C');
-                                    Write('     Saldo de tarjeta: $ ');
-                                    ReadLn(nuevaTarjeta.saldo_x_tarjeta);
-                                end;
-                                nuevaCuenta.cuenta_virtual[i] := nuevaTarjeta;
+                                WriteLn('   -----------------------');
+                                Seek(archivoCuentas, FileSize(archivoCuentas));
+                                Write(archivoCuentas, nuevaCuenta);
+                                WriteLn();
+                                WriteLn('Cuenta creada exitosamente!');
                             end;
-                            WriteLn('   -----------------------');
-                            Seek(archivoCuentas, FileSize(archivoCuentas));
-                            Write(archivoCuentas, nuevaCuenta);
-                            WriteLn();
-                            WriteLn('Cuenta creada exitosamente!');
                         end;
                     end
                     else
