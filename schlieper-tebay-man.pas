@@ -800,9 +800,9 @@ var
 begin
     diasMes := 28;
     for i := 1 to 7 do
-        if(mes = tienen31[i]) then
+        if mes = tienen31[i] then
             diasMes := 31
-        else
+        else if mes <> 2 then
             diasMes := 30;
 end;
 
