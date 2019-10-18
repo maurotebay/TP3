@@ -559,10 +559,11 @@ begin
     Reset(archivoCuentas);
     Reset(archivoMovimientos);
     posEmisor:= buscarCuentaPorDni(dni);
+    WriteLn;
     if(posEmisor= -1) then
     begin
-         writeln('Usted no posee una cuenta asociada, seleccione la opcion 2 en el menu anterior');
-         readKey;
+         writeln('Usted no posee una cuenta asociada.');
+         WriteLn('Dirijase a Cuentas (opcion 2) para crear una.');
     end
     else
     begin
@@ -618,9 +619,12 @@ begin
             else if cuentaEnvia.saldo_billetera = 0.0 then
                 Write('No tiene saldo en su cuenta, regresando al menu anterior.')
             else
-                Write('El DNI ingresado no corresponde a ningun otro usuario con cuenta virtual. Vuevla a intentarlo');
+                Write('El DNI ingresado no corresponde a ningun otro usuario con cuenta virtual. Vuelva a intentarlo');
         end;
     end;
+    WriteLn();
+    WriteLn();
+    Write('Presione cualquier tecla para volver al menu de Sistema de Usuario...');
 end;
 
 procedure Compras(usuarioDni: string[8]);
@@ -657,7 +661,10 @@ begin
                 WriteLn();
                 registroCuenta := buscarCuentaPorDni(usuarioDni);    {si existe cuenta de usuario devuelve la posicion en el archivo, sino -1}
                 if registroCuenta = -1 then
-                    WriteLn('  Este usuario no tiene cuenta! No puede realizar ninguna compra!')
+                begin
+                    WriteLn('  Este usuario no tiene cuenta! No puede realizar ninguna compra!');
+                    WriteLn('  Dirijase a Cuentas (opcion 2) para crear una.');
+                end
                 else
                 begin
                     Seek(archivoCuentas, registroCuenta); {muevo el puntero a la posicion de la cuenta virtual del usuario}
