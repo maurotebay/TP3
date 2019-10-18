@@ -754,7 +754,12 @@ begin
     if primerPos<>-1 then           //si existe entonces empiezo a mostrar
     begin
 
-        WriteLn(format('Entre  %s', [DateToStr(dateI)]), format(' y  %s',[DateToStr(dateF)]), ' los movimientos del usuario DNI ', dni, ' son:');
+        Write(format('Entre %s', [DateToStr(dateI)]), format(' y %s',[DateToStr(dateF)]), ' los movimientos del usuario DNI ');
+        TextBackground(Blue);
+        TextColor(White);
+        Write(dni);
+        NormVideo;
+        WriteLn(' son:');
         seek(archivoMovimientos, primerPos);    //posicion del primer movimiento cuya fecha es mayor a la inicial
 
         hayMovimiento := False; //si se mantiene false es porque no hubo movimientos del usuario
@@ -808,15 +813,20 @@ end;
 
 procedure Movimientos(dni: string[8]);
 var
-    diaInicio, mesInicio, anoInicio, diaFin, mesFin, anoFin: word;
+    diaInicio, mesInicio, anoInicio, diaFin, mesFin, anoFin, diaHoy, mesHoy, anoHoy, diaLimite, mesLimite, diaMinimo, mesMinimo: word;
     dateI, dateF: TDateTime;
     i: integer;
 begin
+    DecodeDate(Date, anoHoy, mesHoy, diaHoy);
     WriteLn();
     WriteLn();
     WriteLn('Consulte los movimientos realizados entre 2 fechas.');
     WriteLn();
-    WriteLn('Tenga en cuenta que hoy es: ', Format('%s', [DateToStr(Date)]));
+    Write('Tenga en cuenta que hoy es: ');
+    TextBackground(Green);
+    TextColor(White);
+    WriteLn(Format('%s', [DateToStr(Date)]));
+    NormVideo;
     WriteLn();
     WriteLn(); WriteLn(); WriteLn(); WriteLn();
     repeat
@@ -825,28 +835,36 @@ begin
             GotoXY(1, WhereY - 1);
             ClrEol;
         end;
-        WriteLn('Ingrese Fecha Inicial (anterior o igual a *hoy*):');
+        WriteLn('Ingrese Fecha Inicial (anterior o igual a hoy):');
         WriteLn();
         repeat
             GotoXY(1, WhereY - 1);
             ClrEol();
-            Write('  Ano: ');
+            Write('  Ano (maximo ', anoHoy, '): ');
             ReadLn(anoInicio);
-        until anoInicio <= 10000;
+        until anoInicio <= anoHoy;
         WriteLn();
         repeat
             GotoXY(1, WhereY - 1);
             ClrEol();
-            Write('  Mes (1 a 12): ');
+            if anoInicio < anoHoy then
+                mesLimite := 12
+            else
+                mesLimite := mesHoy;
+            Write('  Mes (1 a ', mesLimite, '): ');
             ReadLn(mesInicio);
-        until (mesInicio >= 1) AND (mesInicio <= 12);
+        until (mesInicio >= 1) AND (mesInicio <= mesLimite);
         WriteLn();
         repeat
             GotoXY(1, WhereY - 1);
             ClrEol();
-            Write('  Dia (1 a ', diasMes(mesInicio),'): ');
+            if (anoInicio < anoHoy) OR (mesInicio <> mesHoy) then
+                diaLimite := diasMes(mesInicio)
+            else
+                diaLimite := diaHoy;
+            Write('  Dia (1 a ', diaLimite, '): ');
             ReadLn(diaInicio);
-        until (diaInicio >= 1) AND (diaInicio <= diasMes(mesInicio));
+        until (diaInicio >= 1) AND (diaInicio <= diaLimite);
         dateI := EncodeDate(anoInicio, mesInicio, diaInicio);
     until (dateI <= Date());
 
@@ -858,35 +876,51 @@ begin
             GotoXY(1, WhereY - 1);
             ClrEol;
         end;
-        WriteLn('Ingrese Fecha Final (entre *inicial* y *hoy*):', format('            Hoy es: %s', [DateToStr(Date)]) );
+        WriteLn('Ingrese Fecha Final (entre ', Format('%s', [DateToStr(dateI)]), ' y hoy):');
         WriteLn();
         repeat
             GotoXY(1, WhereY - 1);
             ClrEol();
-            Write('  Ano: ');
+            Write('  Ano (entre ', anoInicio, ' y ', anoHoy, '): ');
             ReadLn(anoFin);
-        until anoFin<=10000;
+        until (anoFin >= anoInicio) AND (anoFin <= anoHoy);
         WriteLn();
         repeat
             GotoXY(1, WhereY - 1);
             ClrEol();
-            Write('  Mes (1 a 12): ');
+            if anoFin < anoHoy then
+                mesLimite := 12
+            else
+                mesLimite := mesHoy;
+            if anoFin > anoInicio then
+                mesMinimo := 1
+            else
+                mesMinimo := mesInicio;
+            Write('  Mes (', mesMinimo, ' a ', mesLimite, '): ');
             ReadLn(mesFin);
-        until (mesFin >= 1) AND (mesFin <= 12);
+        until (mesFin >= mesMinimo) AND (mesFin <= mesLimite);
         WriteLn();
         repeat
             GotoXY(1, WhereY - 1);
             ClrEol();
-            Write('  Dia (1 a ', diasMes(mesFin),'): ');
+            if (anoFin < anoHoy) OR (mesFin <> mesHoy) then
+                diaLimite := diasMes(mesFin)
+            else
+                diaLimite := diaHoy;
+            if (anoFin > anoInicio) OR (mesFin <> mesInicio) then
+                diaMinimo := 1
+            else
+                diaMinimo := diaInicio;
+            Write('  Dia (', diaMinimo, ' a ', diaLimite, '): ');
             ReadLn(diaFin);
-        until (diaFin >= 1) AND (diaFin <= diasMes(mesFin));
+        until (diaFin >= diaMinimo) AND (diaFin <= diaLimite);
         dateF := EncodeDate(anoFin, mesFin, diaFin);
     until ((dateF <= Date()) AND (dateF>=dateI) );
     WriteLn();
     Write('Presione cualquier tecla para mostrar los movimientos en la fecha especificada...');
     readKey;
     ClrScr;
-    WriteLn('    MOVIMIENTOS');
+    WriteLn('         MOVIMIENTOS');
     WriteLn();
     WriteLn();
     ListarMovimientos(dni, dateI, dateF);
@@ -948,25 +982,25 @@ begin
                     opcion := 0;
                 end;
                 2: begin
-                    WriteLn('    CUENTAS');
+                    WriteLn('         CUENTAS');
                     Cuentas(sesionUsuario.dni);
                     opcion := 0;
                     ReadKey;
                 end;
                 3: begin
-                    WriteLn('    ENVIOS DE DINERO');
+                    WriteLn('         ENVIOS DE DINERO');
                     Envios(sesionUsuario.dni);
                     opcion := 0;
                     ReadKey;
                 end;
                 4: begin
-                    WriteLn('    COMPRAS EN COMERCIOS');
+                    WriteLn('         COMPRAS EN COMERCIOS');
                     Compras(sesionUsuario.dni);
                     opcion := 0;
                     ReadKey;
                 end;
                 5: begin
-                    WriteLn('    MOVIMIENTOS');
+                    WriteLn('         MOVIMIENTOS');
                     Movimientos(sesionUsuario.dni);
 
                     opcion := 0;
